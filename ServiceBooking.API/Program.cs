@@ -1,3 +1,5 @@
+using ServiceBooking.CrossCutting.DependencyInjection;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddInfrastructure(builder.Configuration);      // Adicionando injeção de dependencia da connectionString
 
 var app = builder.Build();
 

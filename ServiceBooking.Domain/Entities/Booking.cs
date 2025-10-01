@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 namespace ServiceBooking.Domain.Entities;
 public class Booking
 {
-    public Booking(ServiceOffering service, Provider provider, User user)
+    private Booking() { } // Construtor vazio para uso exclusivo do Entity Framework
+    public Booking(ServiceOffering serviceOffering, Provider provider, User user)
     {
-        Service = service;
+        ServiceOffering = serviceOffering;
         Provider = provider;
         User = user;
         Status = BookingStatus.Pending;
@@ -19,9 +20,9 @@ public class Booking
 
     public int Id { get; set; }
     [Required]
-    public ServiceOffering Service { get; set; }
+    public ServiceOffering ServiceOffering { get; set; }
     [Required]
-    public int ServiceId { get; set; }
+    public int ServiceOfferingId { get; set; }
     [Required]
     public Provider Provider { get; set; }
     [Required]
