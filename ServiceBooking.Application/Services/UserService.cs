@@ -1,4 +1,5 @@
-﻿using ServiceBooking.Application.DTOs;
+﻿using BCrypt.Net;
+using ServiceBooking.Application.DTOs;
 using ServiceBooking.Application.Interfaces;
 using ServiceBooking.Domain.Entities;
 using ServiceBooking.Domain.Repositories;
@@ -32,11 +33,13 @@ public class UserService : IUserService
         var existingUser = await _userRepository.GetUserByEmailAsync(loginDto.Email);
         if (existingUser is null)
         {
-            throw new InvalidOperationException("Este email não foi cadastrado");
+            throw new InvalidOperationException("Email ou senha inválidos");
         }
-        if (existingUser.Password != loginDto.Password)
+
+        var isPasswordValid = BCrypt.Net.BCrypt.Verify(loginDto.Password, existingUser.Password);
+        if (!isPasswordValid)
         {
-            throw new UnauthorizedAccessException("Senha não confere");
+            throw new UnauthorizedAccessException("Email ou senha inválidos");
         }
 
         var token = _tokenService.GenerateToken(existingUser);
@@ -60,7 +63,7 @@ public class UserService : IUserService
         {
             Name = userDto.Name,
             Email = userDto.Email,
-            Password = userDto.Password,
+            Password = BCrypt.Net.BCrypt.HashPassword(userDto.Password)     //Salvando a senha encriptografada
         };
 
         await _userRepository.AddUserAsync(newUser);        // Adiciona ao banco

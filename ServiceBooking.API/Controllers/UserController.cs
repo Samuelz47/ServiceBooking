@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServiceBooking.Application.DTOs;
 using ServiceBooking.Application.Interfaces;
@@ -21,6 +22,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("register")]
+    [Authorize]
     public async Task<ActionResult<UserForRegistrationDto>> RegisterUserAsync(UserForRegistrationDto userDto)
     {
         try
