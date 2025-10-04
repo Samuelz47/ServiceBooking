@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ServiceBooking.Application.Interfaces;
+using ServiceBooking.Domain.Repositories;
 using ServiceBooking.Infrastructure.Context;
+using ServiceBooking.Infrastructure.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +21,9 @@ public static class DependencyInjectionConfig
         {
             dbContextOptions.UseNpgsql(connectionString);               // Passa a string de conexão para o banco do tipo PostgreSQL
         });
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
     }
 }
