@@ -1,4 +1,5 @@
 ﻿using ServiceBooking.Application.DTOs;
+using ServiceBooking.Application.Interfaces;
 using ServiceBooking.Domain.Entities;
 using ServiceBooking.Domain.Repositories;
 using System;
@@ -7,14 +8,39 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServiceBooking.Application.Interfaces;
+namespace ServiceBooking.Application.Services;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _uof;
+    private readonly ITokenService _tokenService;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepository, IUnitOfWork uof, ITokenService tokenService)
     {
         _userRepository = userRepository;
+        _uof = uof;
+        _tokenService = tokenService;
+    }
+
+    public async Task<string> Login(LoginDTO loginDto)
+    {
+        if (loginDto is null)
+        {
+            throw new ArgumentNullException(nameof(loginDto));
+        }
+
+        var existingUser = await _userRepository.GetUserByEmailAsync(loginDto.Email);
+        if (existingUser is null)
+        {
+            throw new InvalidOperationException("Este email não foi cadastrado");
+        }
+        if (existingUser.Password != loginDto.Password)
+        {
+            throw new UnauthorizedAccessException("Senha não confere");
+        }
+
+        var token = _tokenService.GenerateToken(existingUser);
+        return token;
     }
 
     public async Task<User> RegisterUserAsync(UserForRegistrationDto userDto)

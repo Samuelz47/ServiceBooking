@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceBooking.Application.Interfaces;
+using ServiceBooking.Application.Services;
 using ServiceBooking.Domain.Repositories;
+using ServiceBooking.Infrastructure.Auth;
 using ServiceBooking.Infrastructure.Context;
 using ServiceBooking.Infrastructure.Repositories;
 using System;
@@ -24,6 +26,7 @@ public static class DependencyInjectionConfig
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<ITokenService, TokenService>();
         return services;
     }
 }

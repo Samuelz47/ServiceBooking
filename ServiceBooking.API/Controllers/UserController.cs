@@ -12,6 +12,7 @@ public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly IUnitOfWork _uof;
+    private readonly ITokenService _tokenService;
 
     public UserController(IUserService userService, IUnitOfWork uof)
     {
@@ -36,6 +37,28 @@ public class UserController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(ex.Message);      // Captura o erro existente do email.
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { Error = "Ocorreu um erro inesperado no servidor." });      // Captura qualquer outro erro inesperado
+        }
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
+    {
+        try
+        {
+            var token = await _userService.Login(loginDto);
+            return Ok(new { Token = token });
+        }
+        catch (InvalidOperationException)       // Erro para email não encontrado
+        {
+            return Unauthorized("Email ou senha inválida");
+        }
+        catch (UnauthorizedAccessException)     // Erro para senha incorreta
+        {
+            return Unauthorized("Email ou senha inválida");
         }
         catch (Exception)
         {
