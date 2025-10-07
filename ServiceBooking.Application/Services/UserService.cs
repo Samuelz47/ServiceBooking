@@ -1,4 +1,5 @@
-﻿using BCrypt.Net;
+﻿using AutoMapper;
+using BCrypt.Net;
 using ServiceBooking.Application.DTOs;
 using ServiceBooking.Application.Interfaces;
 using ServiceBooking.Domain.Entities;
@@ -13,14 +14,16 @@ namespace ServiceBooking.Application.Services;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
-    private readonly IUnitOfWork _uof;
     private readonly ITokenService _tokenService;
+    private readonly IUnitOfWork _uof;
+    private readonly IMapper _mapper;
 
-    public UserService(IUserRepository userRepository, IUnitOfWork uof, ITokenService tokenService)
+    public UserService(IUserRepository userRepository, ITokenService tokenService, IUnitOfWork uof, IMapper mapper)
     {
         _userRepository = userRepository;
-        _uof = uof;
         _tokenService = tokenService;
+        _uof = uof;
+        _mapper = mapper;
     }
 
     public async Task<string> Login(LoginDTO loginDto)
@@ -46,27 +49,37 @@ public class UserService : IUserService
         return token;
     }
 
-    public async Task<User> RegisterUserAsync(UserForRegistrationDto userDto)
+    public async Task<UserDTO> RegisterUserAsync(UserForRegistrationDto userRegisterDto)
     {
-        if (userDto is null)        // Verifica se o Dto é nulo (programação defensiva)
+        if (userRegisterDto is null)        // Verifica se o Dto é nulo (programação defensiva)
         {
-            throw new ArgumentNullException(nameof(userDto));
+            throw new ArgumentNullException(nameof(userRegisterDto));
         }
 
-        var existingUser = await _userRepository.GetUserByEmailAsync(userDto.Email);    // Verifica se o email já existe na nossa base
+        var existingUser = await _userRepository.GetUserByEmailAsync(userRegisterDto.Email);    // Verifica se o email já existe na nossa base
         if (existingUser is not null)       // Se existir lançamos a exceção
         {
             throw new InvalidOperationException("Este email já foi cadastrado");
         }
 
-        var newUser = new User              // Cria usuário com os dados do Dto
-        {
-            Name = userDto.Name,
-            Email = userDto.Email,
-            Password = BCrypt.Net.BCrypt.HashPassword(userDto.Password)     //Salvando a senha encriptografada
-        };
+        var newUser = _mapper.Map<User>(userRegisterDto);                               // Cria usuário com os dados do Dto
+        newUser.Password = BCrypt.Net.BCrypt.HashPassword(userRegisterDto.Password);    //Salvando a senha encriptografada
 
-        await _userRepository.AddUserAsync(newUser);        // Adiciona ao banco
-        return newUser;
+        await _userRepository.AddUserAsync(newUser);                                    // Adiciona ao banco
+        await _uof.CommitAsync();
+        var userDto = _mapper.Map<UserDTO>(newUser);
+        return userDto;
+    }
+
+    public async Task<UserDTO?> GetAsync(int id)
+    {
+        var user = await _userRepository.GetAsync(u =>  u.Id == id);
+        if (user is null)
+        {
+            return null;
+        }
+
+        var userDto = _mapper.Map<UserDTO>(user);
+        return userDto;
     }
 }

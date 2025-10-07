@@ -9,13 +9,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ServiceBooking.Infrastructure.Repositories;
-public class UserRepository : IUserRepository
+public class UserRepository : Repository<User>, IUserRepository
 {
-    private readonly AppDbContext _context;
-
-    public UserRepository(AppDbContext context)
+    public UserRepository(AppDbContext context) : base(context)
     {
-        _context = context;
     }
 
     public async Task AddUserAsync(User user)

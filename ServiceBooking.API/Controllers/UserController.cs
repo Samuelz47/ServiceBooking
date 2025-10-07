@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServiceBooking.Application.DTOs;
@@ -12,29 +13,37 @@ namespace ServiceBooking.API.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
-    private readonly IUnitOfWork _uof;
-    private readonly ITokenService _tokenService;
+    private readonly IMapper _mapper;
 
-    public UserController(IUserService userService, IUnitOfWork uof)
+    public UserController(IUserService userService, IMapper mapper)
     {
         _userService = userService;
-        _uof = uof;
+        _mapper = mapper;
     }
 
-    [HttpPost("register")]
+    [HttpGet("{id}", Name = "GetUserById")]
+    public async Task<IActionResult> GetUser(int id)
+    {
+        var userDto = await _userService.GetAsync(id);
+
+        if (userDto is null)
+        {
+            return NotFound("Nenhum usuário encontrado");
+        }
+
+        return Ok(userDto);
+    }
+
+    [HttpPost]
     [Authorize]
-    public async Task<ActionResult<UserForRegistrationDto>> RegisterUserAsync(UserForRegistrationDto userDto)
+    public async Task<ActionResult> RegisterUserAsync(UserForRegistrationDto userDto)
     {
         try
         {
             var createdUser = await _userService.RegisterUserAsync(userDto);
-            await _uof.CommitAsync();
-            return Ok(new
-            {
-                Message = "Usuário criado com sucesso",
-                UserId = createdUser.Id,
-                Email = createdUser.Email
-            });
+            return CreatedAtAction(nameof(GetUser),
+                                    new { Id = createdUser.Id },
+                                    createdUser);
         }
         catch (InvalidOperationException ex)
         {

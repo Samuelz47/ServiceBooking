@@ -7,9 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ServiceBooking.Application.Interfaces;
-public interface IUserService
+public interface IProviderService
 {
-    Task<UserDTO> RegisterUserAsync(UserForRegistrationDto userDto);
-    Task<string> Login(LoginDTO loginDto);
-    Task<UserDTO?> GetAsync(int id);
+    Task<ProviderDto> RegisterProviderAsync(ProviderForRegistrationDto ProviderDto);
+    Task<ProviderDto?> GetAsync(int id);
 }

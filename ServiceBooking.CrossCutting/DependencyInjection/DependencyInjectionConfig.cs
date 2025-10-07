@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceBooking.Application.Interfaces;
+using ServiceBooking.Application.Mappings;
 using ServiceBooking.Application.Services;
 using ServiceBooking.Domain.Repositories;
 using ServiceBooking.Infrastructure.Auth;
@@ -27,6 +28,12 @@ public static class DependencyInjectionConfig
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IServiceOfferingRepository, ServiceOfferingRepository>();
+        services.AddScoped<IProviderRepository, ProviderRepository>();
+        services.AddScoped<IProviderService, ProviderService>();
+
+        services.AddAutoMapper(typeof(ProviderDTOMappingProfile).Assembly);     // O Assembly no final informa que ele ira buscar todos os mapeamentos nesse mesmo projeto
         return services;
     }
 }

@@ -6,8 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ServiceBooking.Domain.Repositories;
-public interface IUserRepository : IRepository<User>
+public interface IProviderRepository : IRepository<Provider>
 {
-    Task<User?> GetUserByEmailAsync(string email);
-    Task AddUserAsync(User user);
 }
