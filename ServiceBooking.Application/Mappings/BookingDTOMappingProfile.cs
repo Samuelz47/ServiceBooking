@@ -1,0 +1,21 @@
+﻿using AutoMapper;
+using ServiceBooking.Application.DTOs;
+using ServiceBooking.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ServiceBooking.Application.Mappings;
+public class BookingDTOMappingProfile : Profile
+{
+    public BookingDTOMappingProfile()
+    {
+        CreateMap<BookingForRegistrationDTO, Booking>();
+
+        // Para o Status em bookingDTO (que é string) entender a "tradução" do enum
+        CreateMap<Booking, BookingDTO>().ForMember(dto => dto.Status,opt => opt 
+                                        .MapFrom(entidade => entidade.Status.ToString())); 
+    }
+}

@@ -24,14 +24,18 @@ public static class DependencyInjectionConfig
         {
             dbContextOptions.UseNpgsql(connectionString);               // Passa a string de conexão para o banco do tipo PostgreSQL
         });
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IUserService, UserService>();
+        
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserService, UserService>();
         services.AddScoped<IServiceOfferingRepository, ServiceOfferingRepository>();
+        services.AddScoped<IServiceOfferingService, ServiceOfferingService>();
         services.AddScoped<IProviderRepository, ProviderRepository>();
         services.AddScoped<IProviderService, ProviderService>();
+        services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddScoped<IBookingService, BookingService>();
 
         services.AddAutoMapper(typeof(ProviderDTOMappingProfile).Assembly);     // O Assembly no final informa que ele ira buscar todos os mapeamentos nesse mesmo projeto
         return services;
