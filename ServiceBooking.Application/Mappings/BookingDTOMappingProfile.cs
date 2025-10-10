@@ -15,7 +15,13 @@ public class BookingDTOMappingProfile : Profile
         CreateMap<BookingForRegistrationDTO, Booking>();
 
         // Para o Status em bookingDTO (que é string) entender a "tradução" do enum
-        CreateMap<Booking, BookingDTO>().ForMember(dto => dto.Status,opt => opt 
+        CreateMap<Booking, BookingDTO>().ForMember(dest => dest.ProviderName, opt => opt
+                                        .MapFrom(src => src.Provider.Name))
+                                        .ForMember(dest => dest.ServiceOfferingName, opt => opt
+                                        .MapFrom(src => src.ServiceOffering.Name))
+                                        .ForMember(dest => dest.UserName, opt => opt
+                                        .MapFrom(src => src.User.Name))
+                                        .ForMember(dto => dto.Status,opt => opt 
                                         .MapFrom(entidade => entidade.Status.ToString())); 
     }
 }

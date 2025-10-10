@@ -10,4 +10,5 @@ public interface IServiceOfferingService
 {
     Task<ServiceOfferingDTO> RegisterServiceAsync(ServiceOfferingForRegistrationDTO serviceOfferingRegDTO);
     Task<ServiceOfferingDetailsDTO> GetServiceAsync(int id);
+    Task<IEnumerable<ServiceOfferingDTO>> GetAllServicesAsync();
 }

@@ -30,6 +30,13 @@ public class ServiceOfferingController : ControllerBase
         return Ok(serviceOfferingDto);
     }
 
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<ServiceOfferingDTO>>> GetAllAsync()
+    {
+        var serviceOfferingsDto = await _serviceOfferingService.GetAllServicesAsync();
+
+        return Ok(serviceOfferingsDto);
+    }
     [HttpPost]
     public async Task<ActionResult<ServiceOfferingForRegistrationDTO>> RegisterServiceAsync(ServiceOfferingForRegistrationDTO serviceDto)
     {
@@ -37,7 +44,7 @@ public class ServiceOfferingController : ControllerBase
         {
             var createdService = await _serviceOfferingService.RegisterServiceAsync(serviceDto);
             return CreatedAtAction(nameof(GetServiceOfferingById),
-                                    new { Id = createdService.Id },
+                                    new { id = createdService.Id },
                                     createdService);
         }
         catch (InvalidOperationException ex)

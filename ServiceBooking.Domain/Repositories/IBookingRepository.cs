@@ -9,4 +9,5 @@ namespace ServiceBooking.Domain.Repositories;
 public interface IBookingRepository : IRepository<Booking>
 {
     Task<Booking?> GetByIdWithDetailsAsync(int id);
+    Task<IEnumerable<Booking>> GetByUserIdAsync(int userId);
 }

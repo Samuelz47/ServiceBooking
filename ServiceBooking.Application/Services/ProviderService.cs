@@ -56,4 +56,12 @@ public class ProviderService : IProviderService
         var providerDto = _mapper.Map<ProviderDto>(provider);
         return providerDto;
     }
+
+    public async Task<IEnumerable<ProviderDto>> GetAllAsync()
+    {
+        var providers = await _providerRepository.GetAllAsync();
+
+        var providersDto = _mapper.Map<IEnumerable<ProviderDto>>(providers);
+        return providersDto;
+    }
 }

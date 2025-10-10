@@ -10,4 +10,6 @@ namespace ServiceBooking.Application.Interfaces;
 public interface IBookingService
 {
     Task<BookingDTO> CreateBookingAsync(BookingForRegistrationDTO dto, int id);
+    Task<BookingDTO> GetBookingAsync(int id);
+    Task<IEnumerable<BookingDTO>> GetBookingsByUserIdAsync(int userId);
 }

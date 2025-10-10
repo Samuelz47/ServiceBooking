@@ -51,5 +51,11 @@ public class ServiceOfferingService : IServiceOfferingService
         return serviceOfferingDTO;
     }
 
+    public async Task<IEnumerable<ServiceOfferingDTO>> GetAllServicesAsync()
+    {
+        var serviceOffering = await _serviceOfferingRepository.GetAllAsync();
 
+        var serviceOfferingDto = _mapper.Map<IEnumerable<ServiceOfferingDTO>>(serviceOffering);
+        return serviceOfferingDto;
+    }
 }

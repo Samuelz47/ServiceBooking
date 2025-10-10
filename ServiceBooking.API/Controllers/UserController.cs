@@ -42,7 +42,7 @@ public class UserController : ControllerBase
         {
             var createdUser = await _userService.RegisterUserAsync(userDto);
             return CreatedAtAction(nameof(GetUser),
-                                    new { Id = createdUser.Id },
+                                    new { id = createdUser.Id },
                                     createdUser);
         }
         catch (InvalidOperationException ex)

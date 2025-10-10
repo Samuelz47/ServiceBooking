@@ -17,10 +17,18 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
 
     public async Task<Booking?> GetByIdWithDetailsAsync(int id)
     {
-        return await _context.Bookings
-                         .Include(b => b.Provider)          // Inclui o Provider relacionado
-                         .Include(b => b.ServiceOffering)   // Inclui o ServiceOffering relacionado
-                         .Include(b => b.User)              // Inclui o User relacionado
-                         .FirstOrDefaultAsync(b => b.Id == id);
+        return await _context.Bookings.Include(b => b.Provider)          // Inclui o Provider relacionado
+                                      .Include(b => b.ServiceOffering)   // Inclui o ServiceOffering relacionado
+                                      .Include(b => b.User)              // Inclui o User relacionado
+                                      .FirstOrDefaultAsync(b => b.Id == id);
+    }
+
+    public async Task<IEnumerable<Booking>> GetByUserIdAsync(int userId)
+    {
+        return await _context.Bookings.Include(b => b.Provider) // Incluímos os dados do Provider
+                                      .Include(b => b.ServiceOffering) // e do Serviço
+                                      .Where(b => b.UserId == userId) // O filtro é feito AQUI, no banco!
+                                      .AsNoTracking()
+                                      .ToListAsync();
     }
 }

@@ -57,4 +57,23 @@ public class BookingService : IBookingService
         return bookingDto;
     }
 
+    public async Task<BookingDTO?> GetBookingAsync(int id)
+    {
+        var booking = await _bookingRepository.GetByIdWithDetailsAsync(id);
+        if (booking is null)
+        {
+            return null;
+        }
+
+        var bookingDto = _mapper.Map<BookingDTO>(booking);
+        return bookingDto;
+    }
+
+    public async Task<IEnumerable<BookingDTO>> GetBookingsByUserIdAsync(int userId)
+    {
+        var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+
+        var bookingsDto = _mapper.Map<IEnumerable<BookingDTO>>(bookings);
+        return bookingsDto;
+    }
 }

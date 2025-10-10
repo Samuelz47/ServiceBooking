@@ -11,4 +11,5 @@ public interface IProviderService
 {
     Task<ProviderDto> RegisterProviderAsync(ProviderForRegistrationDto ProviderDto);
     Task<ProviderDto?> GetAsync(int id);
+    Task<IEnumerable<ProviderDto?>> GetAllAsync();
 }
