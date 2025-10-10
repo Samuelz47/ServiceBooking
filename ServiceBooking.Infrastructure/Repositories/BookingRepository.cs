@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ServiceBooking.Application.DTOs;
 using ServiceBooking.Domain.Entities;
 using ServiceBooking.Domain.Repositories;
 using ServiceBooking.Infrastructure.Context;
+using ServiceBooking.Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,12 +25,20 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
                                       .FirstOrDefaultAsync(b => b.Id == id);
     }
 
-    public async Task<IEnumerable<Booking>> GetByUserIdAsync(int userId)
+    public async Task<PagedResult<Booking>> GetByUserIdAsync(int userId, QueryParameters queryParameters)
     {
-        return await _context.Bookings.Include(b => b.Provider) // Incluímos os dados do Provider
-                                      .Include(b => b.ServiceOffering) // e do Serviço
-                                      .Where(b => b.UserId == userId) // O filtro é feito AQUI, no banco!
-                                      .AsNoTracking()
-                                      .ToListAsync();
+        var query = _context.Bookings.Where(b => b.UserId == userId);
+
+        var totalCount = await query.CountAsync();
+        
+        var items = await query.Include(b => b.Provider)
+                               .Include(b => b.ServiceOffering)
+                               .Include(b => b.User) 
+                               .AsNoTracking() // Boa prática para consultas de leitura.
+                               .Skip((queryParameters.PageNumber - 1) * queryParameters.PageSize)
+                               .Take(queryParameters.PageSize)
+                               .ToListAsync();
+
+        return new PagedResult<Booking>(items, queryParameters.PageNumber, queryParameters.PageSize, totalCount);
     }
 }

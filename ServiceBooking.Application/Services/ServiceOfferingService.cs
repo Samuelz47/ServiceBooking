@@ -3,6 +3,7 @@ using ServiceBooking.Application.DTOs;
 using ServiceBooking.Application.Interfaces;
 using ServiceBooking.Domain.Entities;
 using ServiceBooking.Domain.Repositories;
+using ServiceBooking.Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,11 +52,11 @@ public class ServiceOfferingService : IServiceOfferingService
         return serviceOfferingDTO;
     }
 
-    public async Task<IEnumerable<ServiceOfferingDTO>> GetAllServicesAsync()
+    public async Task<PagedResult<ServiceOfferingDTO>> GetAllServicesAsync(QueryParameters queryParameters)
     {
-        var serviceOffering = await _serviceOfferingRepository.GetAllAsync();
+        var pagedResult = await _serviceOfferingRepository.GetAllAsync(queryParameters);
 
-        var serviceOfferingDto = _mapper.Map<IEnumerable<ServiceOfferingDTO>>(serviceOffering);
-        return serviceOfferingDto;
+        var serviceOfferingDto = _mapper.Map<IEnumerable<ServiceOfferingDTO>>(pagedResult.Items);
+        return new PagedResult<ServiceOfferingDTO>(serviceOfferingDto, pagedResult.PageNumber, pagedResult.PageSize, pagedResult.TotalCount);
     }
 }

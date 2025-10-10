@@ -1,5 +1,6 @@
 ﻿using ServiceBooking.Application.DTOs;
 using ServiceBooking.Domain.Entities;
+using ServiceBooking.Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,5 +12,5 @@ public interface IBookingService
 {
     Task<BookingDTO> CreateBookingAsync(BookingForRegistrationDTO dto, int id);
     Task<BookingDTO> GetBookingAsync(int id);
-    Task<IEnumerable<BookingDTO>> GetBookingsByUserIdAsync(int userId);
+    Task<PagedResult<BookingDTO>> GetBookingsByUserIdAsync(int userId, QueryParameters queryParameters);
 }

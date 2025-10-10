@@ -3,6 +3,7 @@ using ServiceBooking.Application.DTOs;
 using ServiceBooking.Application.Interfaces;
 using ServiceBooking.Domain.Entities;
 using ServiceBooking.Domain.Repositories;
+using ServiceBooking.Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,11 +58,11 @@ public class ProviderService : IProviderService
         return providerDto;
     }
 
-    public async Task<IEnumerable<ProviderDto>> GetAllAsync()
+    public async Task<PagedResult<ProviderDto>> GetAllAsync(QueryParameters queryParameters)
     {
-        var providers = await _providerRepository.GetAllAsync();
+        var pagedResult = await _providerRepository.GetAllAsync(queryParameters);
 
-        var providersDto = _mapper.Map<IEnumerable<ProviderDto>>(providers);
-        return providersDto;
+        var providersDto = _mapper.Map<IEnumerable<ProviderDto>>(pagedResult.Items);
+        return new PagedResult<ProviderDto>(providersDto, pagedResult.PageNumber, pagedResult.PageSize, pagedResult.TotalCount);
     }
 }

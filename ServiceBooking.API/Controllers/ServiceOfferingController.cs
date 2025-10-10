@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using ServiceBooking.Application.DTOs;
 using ServiceBooking.Application.Interfaces;
 using ServiceBooking.Domain.Repositories;
+using ServiceBooking.Shared.Common;
+using System.Text.Json;
 
 namespace ServiceBooking.API.Controllers;
 [Route("[controller]")]
@@ -31,11 +33,25 @@ public class ServiceOfferingController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ServiceOfferingDTO>>> GetAllAsync()
+    public async Task<IActionResult> GetAllAsync([FromQuery] QueryParameters queryParameters)
     {
-        var serviceOfferingsDto = await _serviceOfferingService.GetAllServicesAsync();
+        var pagedResult = await _serviceOfferingService.GetAllServicesAsync(queryParameters);
 
-        return Ok(serviceOfferingsDto);
+        // Cria um objeto de metadados da paginação
+        var paginationMetadata = new
+        {
+            pagedResult.TotalCount,
+            pagedResult.PageSize,
+            pagedResult.PageNumber,
+            pagedResult.TotalPages,
+            pagedResult.HasNextPage,
+            pagedResult.HasPreviousPage
+        };
+
+        // Adiciona os metadados serializados ao header da resposta
+        Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
+
+        return Ok(pagedResult.Items);
     }
     [HttpPost]
     public async Task<ActionResult<ServiceOfferingForRegistrationDTO>> RegisterServiceAsync(ServiceOfferingForRegistrationDTO serviceDto)

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServiceBooking.Domain.Repositories;
 using ServiceBooking.Infrastructure.Context;
+using ServiceBooking.Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +19,17 @@ public class Repository<T> : IRepository<T> where T : class
         _context = context;
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync()
+    public async Task<PagedResult<T>> GetAllAsync(QueryParameters queryParameters)
     {
-        return await _context.Set<T>().AsNoTracking().ToListAsync();                  //o Set serve para pegar uma coleção ou tabela do tipo T(no caso a classe)
+        var totalCount = await _context.Set<T>().CountAsync();      // Verificando o numero de total de itens
+
+        var items = await _context.Set<T>()
+                                  .AsNoTracking()
+                                  .Skip((queryParameters.PageNumber - 1) * queryParameters.PageSize)    //Pula os itens das paginas anteriores
+                                  .Take(queryParameters.PageSize)                                       //Pega a quantidade de itens definida por pagina
+                                  .ToListAsync();
+
+        return new PagedResult<T>(items, queryParameters.PageNumber, queryParameters.PageSize, totalCount);
     }
 
     public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate)

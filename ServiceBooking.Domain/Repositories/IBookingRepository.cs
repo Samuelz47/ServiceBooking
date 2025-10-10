@@ -1,4 +1,5 @@
 ﻿using ServiceBooking.Domain.Entities;
+using ServiceBooking.Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,5 +10,5 @@ namespace ServiceBooking.Domain.Repositories;
 public interface IBookingRepository : IRepository<Booking>
 {
     Task<Booking?> GetByIdWithDetailsAsync(int id);
-    Task<IEnumerable<Booking>> GetByUserIdAsync(int userId);
+    Task<PagedResult<Booking>> GetByUserIdAsync(int userId, QueryParameters queryParameters);
 }

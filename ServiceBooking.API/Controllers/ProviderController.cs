@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using ServiceBooking.Application.DTOs;
 using ServiceBooking.Application.Interfaces;
 using ServiceBooking.Application.Services;
+using ServiceBooking.Shared.Common;
+using System.Text.Json;
 
 namespace ServiceBooking.API.Controllers;
 [Route("[controller]")]
@@ -29,11 +32,23 @@ public class ProviderController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProviderDto>>> GetAllProvidersAsync()
+    public async Task<IActionResult> GetAllProvidersAsync([FromQuery] QueryParameters queryParameters)
     {
-        var providersDto = await _providerService.GetAllAsync();
+        var pagedResult = await _providerService.GetAllAsync(queryParameters);
 
-        return Ok(providersDto);
+        var paginationMetadata = new
+        {
+            pagedResult.TotalCount,
+            pagedResult.PageSize,
+            pagedResult.PageNumber,
+            pagedResult.TotalPages,
+            pagedResult.HasNextPage,
+            pagedResult.HasPreviousPage
+        };
+
+        Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
+
+        return Ok(pagedResult.Items);
     }
 
     [HttpPost]

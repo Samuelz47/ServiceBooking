@@ -3,6 +3,7 @@ using ServiceBooking.Application.DTOs;
 using ServiceBooking.Application.Interfaces;
 using ServiceBooking.Domain.Entities;
 using ServiceBooking.Domain.Repositories;
+using ServiceBooking.Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,11 +70,20 @@ public class BookingService : IBookingService
         return bookingDto;
     }
 
-    public async Task<IEnumerable<BookingDTO>> GetBookingsByUserIdAsync(int userId)
+    public async Task<PagedResult<BookingDTO>> GetBookingsByUserIdAsync(int userId, QueryParameters queryParameters)
     {
-        var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+        // 1. Pede ao repositório o resultado paginado de ENTIDADES
+        var pagedResultFromRepo = await _bookingRepository.GetByUserIdAsync(userId, queryParameters);
 
-        var bookingsDto = _mapper.Map<IEnumerable<BookingDTO>>(bookings);
-        return bookingsDto;
+        // 2. Usa o AutoMapper para converter a lista de ENTIDADES (Items) em uma lista de DTOs
+        var bookingDtos = _mapper.Map<IEnumerable<BookingDTO>>(pagedResultFromRepo.Items);
+
+        // 3. Cria e retorna um NOVO resultado paginado, agora contendo os DTOs,
+        //    mas preservando os metadados de paginação (TotalCount, PageNumber, etc.) que vieram do repositório.
+        return new PagedResult<BookingDTO>(
+            bookingDtos,
+            pagedResultFromRepo.TotalCount,
+            pagedResultFromRepo.PageNumber,
+            pagedResultFromRepo.PageSize);
     }
 }

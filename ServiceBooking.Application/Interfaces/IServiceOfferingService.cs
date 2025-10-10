@@ -1,4 +1,5 @@
 ﻿using ServiceBooking.Application.DTOs;
+using ServiceBooking.Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +11,5 @@ public interface IServiceOfferingService
 {
     Task<ServiceOfferingDTO> RegisterServiceAsync(ServiceOfferingForRegistrationDTO serviceOfferingRegDTO);
     Task<ServiceOfferingDetailsDTO> GetServiceAsync(int id);
-    Task<IEnumerable<ServiceOfferingDTO>> GetAllServicesAsync();
+    Task<PagedResult<ServiceOfferingDTO>> GetAllServicesAsync(QueryParameters queryParameters);
 }
