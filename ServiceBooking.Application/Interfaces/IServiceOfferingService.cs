@@ -13,4 +13,6 @@ public interface IServiceOfferingService
     Task<ServiceOfferingDetailsDTO> GetServiceAsync(int id);
     Task<PagedResult<ServiceOfferingDTO>> GetAllServicesAsync(QueryParameters queryParameters);
     Task<ServiceOfferingDTO?> UpdateServiceOfferingAsync(ServiceOfferingForUpdateDTO serviceDto, int id);
+    Task<bool> DeleteAsync(int id);
+    Task<ServiceOfferingDetailsDTO> UpdateProvidersAsync(ServiceOfferingUpdatesProvidersDTO serviceUpdate, int id);
 }

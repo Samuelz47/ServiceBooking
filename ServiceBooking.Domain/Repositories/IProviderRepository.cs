@@ -8,4 +8,6 @@ using System.Threading.Tasks;
 namespace ServiceBooking.Domain.Repositories;
 public interface IProviderRepository : IRepository<Provider>
 {
+    Task<Provider?> GetByIdWithDetailsAsync(int id);
+    Task<List<Provider>> GetByIdsAsync(IEnumerable<int> ids);
 }

@@ -11,5 +11,5 @@ public class ServiceOfferingDetailsDTO
     public int Id { get; set; }
     public string? Name { get; set; }
     public string? Description { get; set; }
-    public ICollection<Provider> Providers { get; set; }
+    public ICollection<ProviderDto> Providers { get; set; }
 }

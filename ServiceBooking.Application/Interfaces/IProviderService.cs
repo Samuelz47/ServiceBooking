@@ -14,4 +14,6 @@ public interface IProviderService
     Task<ProviderDto?> GetAsync(int id);
     Task<PagedResult<ProviderDto>> GetAllAsync(QueryParameters queryParameters);
     Task<ProviderDto?> UpdateAsync(ProviderForUpdateDTO providerDto, int id);
+    Task<bool> DeleteAsync(int id);
+    Task<ProviderDetailsDto> UpdateServicesAsync(ProviderUpdateServicesDTO providerUpdate, int id);
 }

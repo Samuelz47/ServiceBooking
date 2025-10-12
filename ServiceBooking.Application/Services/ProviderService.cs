@@ -14,14 +14,16 @@ namespace ServiceBooking.Application.Services;
 public class ProviderService : IProviderService
 {
     private readonly IProviderRepository _providerRepository;
+    private readonly IServiceOfferingRepository _serviceOfferingRepository;
     private readonly IUnitOfWork _uof;
     private readonly IMapper _mapper;
 
-    public ProviderService(IProviderRepository providerRepository, IUnitOfWork uof, IMapper mapper)
+    public ProviderService(IProviderRepository providerRepository, IUnitOfWork uof, IMapper mapper, IServiceOfferingRepository serviceOfferingRepository)
     {
         _providerRepository = providerRepository;
         _uof = uof;
         _mapper = mapper;
+        _serviceOfferingRepository = serviceOfferingRepository;
     }
 
     public async Task<ProviderDto> RegisterProviderAsync(ProviderForRegistrationDto providerRegisterDto)
@@ -94,5 +96,48 @@ public class ProviderService : IProviderService
 
         var updatedProvider = _mapper.Map<ProviderDto>(provider);
         return updatedProvider;
+    }
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var provider = await _providerRepository.GetAsync(p => p.Id == id);
+        if (provider is null)
+        {
+            return false;
+        }
+
+        _providerRepository.Delete(provider);
+        await _uof.CommitAsync();
+        return true;
+    }
+
+    public async Task<ProviderDetailsDto> UpdateServicesAsync(ProviderUpdateServicesDTO providerUpdate, int id)
+    {
+        var provider = await _providerRepository.GetByIdWithDetailsAsync(id);  
+        if (provider is null)
+        {
+            return null;
+        }
+
+        if (providerUpdate.ServicesIds is null)                                         
+        {
+            throw new ArgumentException("A lista de IDs de serviço não pode ser nula");
+        }
+
+        var servicesFromDb = await _serviceOfferingRepository.GetByIdsAsync(providerUpdate.ServicesIds);      
+
+        if (servicesFromDb.Count != providerUpdate.ServicesIds.Count)                                
+        {
+            throw new InvalidOperationException("Um ou mais IDs de provedor enviados são inválidos.");
+        }
+
+        provider.Services.Clear();                                                   
+        foreach (var service in servicesFromDb)
+        {
+            provider.Services.Add(service);                                            
+        }
+
+        var providerDto = _mapper.Map<ProviderDetailsDto>(provider);
+        await _uof.CommitAsync();
+        return providerDto;
     }
 }

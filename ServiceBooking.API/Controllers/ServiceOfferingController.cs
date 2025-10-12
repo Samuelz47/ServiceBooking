@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServiceBooking.Application.DTOs;
 using ServiceBooking.Application.Interfaces;
+using ServiceBooking.Application.Services;
 using ServiceBooking.Domain.Repositories;
 using ServiceBooking.Shared.Common;
 using System.Text.Json;
@@ -93,5 +94,43 @@ public class ServiceOfferingController : ControllerBase
         {
             return StatusCode(500, "Ocorreu um erro inesperado ao atualizador o serviço");
         }
+    }
+
+    [HttpPut("{id}/providers", Name = "UpdateProviderServices")]
+    //[Authorize]
+    public async Task<ActionResult<ProviderDetailsDto>> UpdateProvidersOfServices([FromBody] ServiceOfferingUpdatesProvidersDTO serviceDto, int id)
+    {
+        try
+        {
+            var updatedService = await _serviceOfferingService.UpdateProvidersAsync(serviceDto, id);
+
+            if (updatedService is null)
+            {
+                return NotFound($"Nenhum serviço foi encontrado com o ID {id}");
+            }
+
+            return Ok(updatedService);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { Error = "Ocorreu um erro inesperado no servidor." });
+        }
+    }
+
+    [HttpDelete("{id}")]
+    //[Authorize]
+    public async Task<IActionResult> DeleteServiceOfferingAsync(int id)
+    {
+        bool result = await _serviceOfferingService.DeleteAsync(id);
+        if (!result)
+        {
+            return NotFound($"Nenhum serviço foi encontrado com o ID {id}");
+        }
+
+        return NoContent();
     }
 }

@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using ServiceBooking.Application.DTOs;
 using ServiceBooking.Application.Interfaces;
 using ServiceBooking.Application.Services;
@@ -81,14 +83,52 @@ public class ProviderController : ControllerBase
 
             if (updatedProvider is null)
             {
-                return NotFound($"Nenhum serviço foi encontrado com o ID {id}");
+                return NotFound($"Nenhum provedor foi encontrado com o ID {id}");
             }
 
             return Ok(updatedProvider);
         }
         catch (Exception)
         {
-            return StatusCode(500, "Ocorreu um erro inesperado ao atualizador o serviço");
+            return StatusCode(500, "Ocorreu um erro inesperado ao atualizador o provedor");
         }
+    }
+
+    [HttpPut("{id}/services", Name = "UpdateServicesProvider" )]
+    //[Authorize]
+    public async Task<ActionResult<ProviderDetailsDto>> UpdateServicesOfProvider([FromBody] ProviderUpdateServicesDTO providerDto, int id)
+    {
+        try
+        {
+            var updatedProvider = await _providerService.UpdateServicesAsync(providerDto, id);
+
+            if(updatedProvider is null)
+            {
+                return NotFound($"Nenhum provedor foi encontrado com o ID {id}");
+            }
+
+            return Ok(updatedProvider);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { Error = "Ocorreu um erro inesperado no servidor." });
+        }
+    }
+
+    [HttpDelete("{id}")]
+    //[Authorize]
+    public async Task<IActionResult> DeleteProviderAsync(int id)
+    {
+        bool result = await _providerService.DeleteAsync(id);
+        if (!result)
+        {
+            return NotFound($"Nenhum provedor foi encontrado com o ID {id}");
+        }
+
+        return NoContent();
     }
 }
