@@ -12,4 +12,5 @@ public interface IServiceOfferingService
     Task<ServiceOfferingDTO> RegisterServiceAsync(ServiceOfferingForRegistrationDTO serviceOfferingRegDTO);
     Task<ServiceOfferingDetailsDTO> GetServiceAsync(int id);
     Task<PagedResult<ServiceOfferingDTO>> GetAllServicesAsync(QueryParameters queryParameters);
+    Task<ServiceOfferingDTO?> UpdateServiceOfferingAsync(ServiceOfferingForUpdateDTO serviceDto, int id);
 }

@@ -13,6 +13,7 @@ public class ServiceOfferingDTOMappingProfile : Profile
     public ServiceOfferingDTOMappingProfile()
     {
         CreateMap<ServiceOfferingForRegistrationDTO, ServiceOffering>();
+        CreateMap<ServiceOfferingForUpdateDTO, ServiceOffering>();
 
         CreateMap<ServiceOffering, ServiceOfferingDTO>();
         CreateMap<ServiceOffering, ServiceOfferingDetailsDTO>();

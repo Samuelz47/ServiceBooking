@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServiceBooking.Application.DTOs;
@@ -70,6 +71,27 @@ public class ServiceOfferingController : ControllerBase
         catch (Exception)
         {
             return StatusCode(500, new { Error = "Ocorreu um erro inesperado no servidor." });
+        }
+    }
+
+    [HttpPut("{id}", Name = "UpdateService")]
+    //[Authorize]
+    public async Task<ActionResult<ServiceOfferingDTO>> UpdateServiceAsync([FromBody]ServiceOfferingForUpdateDTO serviceDto, int id)
+    {
+        try
+        {
+            var serviceOfferingDto = await _serviceOfferingService.UpdateServiceOfferingAsync(serviceDto, id);
+
+            if (serviceOfferingDto is null)
+            {
+                return NotFound($"Nenhum serviço foi encontrado com o ID {id}");
+            }
+
+            return Ok(serviceOfferingDto);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Ocorreu um erro inesperado ao atualizador o serviço");
         }
     }
 }

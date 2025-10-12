@@ -13,7 +13,8 @@ public class ProviderDTOMappingProfile : Profile
     public ProviderDTOMappingProfile()
     {
         // Mapeamento do DTO de ENTRADA (Criação) para a Entidade
-        CreateMap<ProviderForRegistrationDto, Provider>(); 
+        CreateMap<ProviderForRegistrationDto, Provider>();
+        CreateMap<ProviderForUpdateDTO, Provider>();
 
         // Mapeamentos da Entidade para os DTOs de SAÍDA (Resposta)
         CreateMap<Provider, ProviderDto>();

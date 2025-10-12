@@ -70,4 +70,25 @@ public class ProviderController : ControllerBase
             return StatusCode(500, new { Error = "Ocorreu um erro inesperado no servidor." });
         }
     }
+
+    [HttpPut("{id}", Name = "UpdateProvider")]
+    //[Authorize]
+    public async Task<ActionResult<ProviderDto>> UpdateProviderAsync([FromBody] ProviderForUpdateDTO providerDto, int id)
+    {
+        try
+        {
+            var updatedProvider = await _providerService.UpdateAsync(providerDto, id);
+
+            if (updatedProvider is null)
+            {
+                return NotFound($"Nenhum serviço foi encontrado com o ID {id}");
+            }
+
+            return Ok(updatedProvider);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Ocorreu um erro inesperado ao atualizador o serviço");
+        }
+    }
 }

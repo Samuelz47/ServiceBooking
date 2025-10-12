@@ -65,4 +65,34 @@ public class ProviderService : IProviderService
         var providersDto = _mapper.Map<IEnumerable<ProviderDto>>(pagedResult.Items);
         return new PagedResult<ProviderDto>(providersDto, pagedResult.PageNumber, pagedResult.PageSize, pagedResult.TotalCount);
     }
+
+    public async Task<ProviderDto?> UpdateAsync(ProviderForUpdateDTO providerDto, int id)
+    {
+        var provider = await _providerRepository.GetAsync(p => p.Id == id);
+        if (provider is null)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrEmpty(providerDto.Name))
+        {
+            provider.Name = providerDto.Name;
+        }
+
+        if (!string.IsNullOrEmpty(providerDto.Description))
+        {
+            provider.Description = providerDto.Description;
+        }
+
+        if (!string.IsNullOrEmpty(providerDto.LogoUrl))
+        {
+            provider.LogoUrl = providerDto.LogoUrl;
+        }
+
+        _providerRepository.Update(provider);
+        await _uof.CommitAsync();
+
+        var updatedProvider = _mapper.Map<ProviderDto>(provider);
+        return updatedProvider;
+    }
 }

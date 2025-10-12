@@ -59,4 +59,29 @@ public class ServiceOfferingService : IServiceOfferingService
         var serviceOfferingDto = _mapper.Map<IEnumerable<ServiceOfferingDTO>>(pagedResult.Items);
         return new PagedResult<ServiceOfferingDTO>(serviceOfferingDto, pagedResult.PageNumber, pagedResult.PageSize, pagedResult.TotalCount);
     }
+
+    public async Task<ServiceOfferingDTO?> UpdateServiceOfferingAsync(ServiceOfferingForUpdateDTO serviceDto, int id)
+    {
+        var service = await _serviceOfferingRepository.GetAsync(p => p.Id == id);
+        if (service is null)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrEmpty(serviceDto.Name))
+        {
+            service.Name = serviceDto.Name;
+        }
+
+        if (!string.IsNullOrEmpty(serviceDto.Description))
+        {
+            service.Description = serviceDto.Description;
+        }
+
+        _serviceOfferingRepository.Update(service);
+        await _uof.CommitAsync();
+
+        var updatedService = _mapper.Map<ServiceOfferingDTO>(service);
+        return updatedService;
+    }
 }
