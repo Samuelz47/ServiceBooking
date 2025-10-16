@@ -11,4 +11,5 @@ public interface IBookingRepository : IRepository<Booking>
 {
     Task<Booking?> GetByIdWithDetailsAsync(int id);
     Task<PagedResult<Booking>> GetByUserIdAsync(int userId, QueryParameters queryParameters);
+    Task<Booking?> GetByIdAndUserIdAsync(int bookingId, int userId);
 }

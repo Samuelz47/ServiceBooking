@@ -4,6 +4,7 @@ using ServiceBooking.Application.Interfaces;
 using ServiceBooking.Domain.Entities;
 using ServiceBooking.Domain.Repositories;
 using ServiceBooking.Shared.Common;
+using ServiceBooking.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,21 @@ public class BookingService : IBookingService
         _providerRepository = providerRepository;
         _userRepository = userRepository;
     }
+
+    public async Task<bool> CancelAsync(int id, int userId)
+    {
+        var existingBooking = await _bookingRepository.GetByIdAndUserIdAsync(id, userId);
+
+        if (existingBooking is null)
+        {
+            return false;
+        }
+
+        existingBooking.Status = BookingStatus.Cancelled;
+        await _uof.CommitAsync();
+        return true;
+    }
+
     public async Task<BookingDTO> CreateBookingAsync(BookingForRegistrationDTO dto, int userId)
     {
         var provider = await _providerRepository.GetAsync(p => p.Id == dto.ProviderId);

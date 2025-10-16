@@ -17,6 +17,12 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
     {
     }
 
+    public async Task<Booking?> GetByIdAndUserIdAsync(int bookingId, int userId)
+    {
+        return await _context.Bookings
+                             .FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId);
+    }
+
     public async Task<Booking?> GetByIdWithDetailsAsync(int id)
     {
         return await _context.Bookings.Include(b => b.Provider)          // Inclui o Provider relacionado

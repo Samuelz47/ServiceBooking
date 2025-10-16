@@ -96,4 +96,29 @@ public class BookingController : ControllerBase
             return StatusCode(500, "Ocorreu um erro inesperado ao processar o agendamento.");
         }
     }
+
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task<IActionResult> CancelBooking (int id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim is null)
+        {
+            return Unauthorized("Token inválido ou não contém o ID do usuário.");
+        }
+
+        if (!int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Unauthorized("ID do usuário no token está em um formato inválido.");
+        }
+        
+        bool cancelledBooking = await _bookingService.CancelAsync(id, userId);
+        if (!cancelledBooking)
+        {
+            return NotFound("Agendamento não encontrado ou não pertence a este usuário.");
+        }
+
+        return NoContent();
+    }
 }

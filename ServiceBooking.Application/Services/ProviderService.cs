@@ -48,7 +48,7 @@ public class ProviderService : IProviderService
         return providerDto;
     }
 
-    public async Task<ProviderDto?> GetAsync(int id)
+    public async Task<ProviderDetailsDto?> GetAsync(int id)
     {
         var provider = await _providerRepository.GetAsync(p => p.Id == id);
         if (provider is null)
@@ -56,7 +56,7 @@ public class ProviderService : IProviderService
             return null;
         }
 
-        var providerDto = _mapper.Map<ProviderDto>(provider);
+        var providerDto = _mapper.Map<ProviderDetailsDto>(provider);
         return providerDto;
     }
 

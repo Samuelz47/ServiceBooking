@@ -22,6 +22,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{id}", Name = "GetUserById")]
+    [Authorize]
     public async Task<IActionResult> GetUser(int id)
     {
         var userDto = await _userService.GetAsync(id);
@@ -35,7 +36,6 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
     public async Task<ActionResult> RegisterUserAsync(UserForRegistrationDto userDto)
     {
         try

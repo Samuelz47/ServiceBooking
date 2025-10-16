@@ -13,6 +13,7 @@ public class BookingDTOMappingProfile : Profile
     public BookingDTOMappingProfile()
     {
         CreateMap<BookingForRegistrationDTO, Booking>();
+        CreateMap<BookingForUpdateDTO, Booking>();
 
         // Para o Status em bookingDTO (que é string) entender a "tradução" do enum
         CreateMap<Booking, BookingDTO>().ForMember(dest => dest.ProviderName, opt => opt

@@ -11,7 +11,7 @@ namespace ServiceBooking.Application.Interfaces;
 public interface IProviderService
 {
     Task<ProviderDto> RegisterProviderAsync(ProviderForRegistrationDto ProviderDto);
-    Task<ProviderDto?> GetAsync(int id);
+    Task<ProviderDetailsDto?> GetAsync(int id);
     Task<PagedResult<ProviderDto>> GetAllAsync(QueryParameters queryParameters);
     Task<ProviderDto?> UpdateAsync(ProviderForUpdateDTO providerDto, int id);
     Task<bool> DeleteAsync(int id);
