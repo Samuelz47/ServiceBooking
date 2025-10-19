@@ -67,6 +67,18 @@ public class BookingService : IBookingService
 
         var newBooking = new Booking(serviceOffering, provider, user);
         newBooking.InitialDate = dto.InitialDate;
+        newBooking.FinalDate = dto.InitialDate.AddHours(serviceOffering.TotalHours);
+
+        var conflictingBookings = await _bookingRepository.GetConflictingBookingsAsync(
+        provider.Id,
+        newBooking.InitialDate,
+        newBooking.FinalDate
+        );
+
+        if (conflictingBookings.Count >= provider.ConcurrentCapacity)
+        {
+            throw new InvalidOperationException("Este horário não está disponível para o provedor selecionado.");
+        }
 
         _bookingRepository.Create(newBooking);
         await _uof.CommitAsync();
@@ -101,5 +113,44 @@ public class BookingService : IBookingService
             pagedResultFromRepo.TotalCount,
             pagedResultFromRepo.PageNumber,
             pagedResultFromRepo.PageSize);
+    }
+
+    public async Task<BookingDTO> UpdateBookingAsync(int id, int userId, BookingForRescheduleDTO dto)
+    {
+        var booking = await _bookingRepository.GetByIdAndUserIdAsync(id, userId);   //Verificando se o agendamento está no cadastro do usuario
+        if (booking is null)
+        {
+            return null;
+        }
+
+        var finalProviderId = dto.ProviderId ?? booking.ProviderId;
+        var finalStartTime = dto.InitialDate ?? booking.InitialDate;
+        var finalEndTime = finalStartTime.AddHours(booking.ServiceOffering.TotalHours);
+
+        var finalProvider = (finalProviderId == booking.ProviderId) 
+                            ? booking.Provider 
+                            : await _providerRepository.GetAsync(p => p.Id == finalProviderId);
+        if (finalProvider is null)
+        {
+            throw new InvalidOperationException("Provedor não encontrado.");
+        }
+
+        var existingBookings = await _bookingRepository.GetConflictingBookingsAsync(finalProviderId, finalStartTime, finalEndTime, id);
+        if (existingBookings.Count >= finalProvider.ConcurrentCapacity)
+        {
+            throw new InvalidOperationException("Novo Provedor sem horário disponível");
+        }
+
+        booking.ProviderId = finalProviderId;
+        booking.Provider = finalProvider;
+        booking.Status = BookingStatus.Pending;
+        booking.InitialDate = finalStartTime;
+        booking.FinalDate = finalEndTime;
+
+        _bookingRepository.Update(booking);
+        await _uof.CommitAsync();
+
+        var updatedBooking = _mapper.Map<BookingDTO>(booking);
+        return updatedBooking;
     }
 }

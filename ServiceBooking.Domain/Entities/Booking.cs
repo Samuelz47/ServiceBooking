@@ -34,6 +34,5 @@ public class Booking
     public BookingStatus Status { get; set; }
     [Required]
     public DateTime InitialDate { get; set; }
-    [Required]
     public DateTime FinalDate { get; set; }
 }

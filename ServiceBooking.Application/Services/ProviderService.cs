@@ -38,7 +38,8 @@ public class ProviderService : IProviderService
         {
             Name = providerRegisterDto.Name,
             Description = providerRegisterDto.Description,
-            LogoUrl = providerRegisterDto.LogoUrl
+            LogoUrl = providerRegisterDto.LogoUrl,
+            ConcurrentCapacity = providerRegisterDto.ConcurrentCapacity.Value,
         };
 
         _providerRepository.Create(provider);
@@ -89,6 +90,11 @@ public class ProviderService : IProviderService
         if (!string.IsNullOrEmpty(providerDto.LogoUrl))
         {
             provider.LogoUrl = providerDto.LogoUrl;
+        }
+
+        if (providerDto.ConcurrentCapacity.HasValue)
+        {
+            provider.ConcurrentCapacity = providerDto.ConcurrentCapacity.Value;
         }
 
         _providerRepository.Update(provider);

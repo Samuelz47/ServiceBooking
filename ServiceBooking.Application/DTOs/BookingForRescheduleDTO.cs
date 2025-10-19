@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ServiceBooking.Application.DTOs;
-public class BookingForUpdateDTO
+public class BookingForRescheduleDTO
 {
-    public int ProviderId { get; set; }
-    public DateTime InitialDate { get; set; }
+    public int? ProviderId { get; set; }
+    public DateTime? InitialDate { get; set; }
 }

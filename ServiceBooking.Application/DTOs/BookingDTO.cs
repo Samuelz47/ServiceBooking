@@ -9,6 +9,7 @@ public class BookingDTO
 {
     public int Id { get; set; }
     public DateTime InitialDate { get; set; }
+    public DateTime FinalDate { get; set; }
     public string Status { get; set; }
     public int ProviderId { get; set; }
     public string? ProviderName { get; set; }

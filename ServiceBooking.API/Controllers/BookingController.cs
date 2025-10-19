@@ -96,6 +96,42 @@ public class BookingController : ControllerBase
             return StatusCode(500, "Ocorreu um erro inesperado ao processar o agendamento.");
         }
     }
+    [HttpPut("{id}", Name = "BookingUpdate")]
+    [Authorize]
+
+    public async Task<ActionResult<BookingDTO>> UpdateBooking (BookingForRescheduleDTO dto, int id)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim is null)
+            {
+                return Unauthorized("Token inválido ou não contém o ID do usuário.");
+            }
+
+            if (!int.TryParse(userIdClaim.Value, out var userId))
+            {
+                return Unauthorized("ID do usuário no token está em um formato inválido.");
+            }
+
+            var booking = await _bookingService.UpdateBookingAsync(id, userId, dto);
+            if (booking == null)
+            {
+                return NotFound("Usuário não possui agendamento");
+            }
+
+            return Ok(booking);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { Error = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Ocorreu um erro inesperado.");
+        }
+    }
 
     [HttpDelete("{id}")]
     [Authorize]

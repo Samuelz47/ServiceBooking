@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ServiceBooking.Application.DTOs;
 using ServiceBooking.Domain.Entities;
+using ServiceBooking.Domain.Enums;
 using ServiceBooking.Domain.Repositories;
 using ServiceBooking.Infrastructure.Context;
 using ServiceBooking.Shared.Common;
@@ -20,6 +21,8 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
     public async Task<Booking?> GetByIdAndUserIdAsync(int bookingId, int userId)
     {
         return await _context.Bookings
+                             .Include(b => b.ServiceOffering)
+                             .Include(b => b.Provider)
                              .FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId);
     }
 
@@ -46,5 +49,27 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
                                .ToListAsync();
 
         return new PagedResult<Booking>(items, queryParameters.PageNumber, queryParameters.PageSize, totalCount);
+    }
+
+    public async Task<List<Booking>> GetConflictingBookingsAsync(int providerId, DateTime newStartTime, DateTime newEndTime, int? bookingIdToExclude = null)
+    {
+        var query = _context.Bookings
+                            .AsNoTracking()
+                            .Where(b => b.ProviderId == providerId) // Filtra apenas pelo provedor desejado.
+                            .Where(b => b.Status != BookingStatus.Cancelled); // Ignora agendamentos que já foram cancelados.
+
+        // Se estivermos REAGENDANDO, precisamos excluir o próprio agendamento da verificação.
+        // Se for um agendamento NOVO, o bookingIdToExclude será nulo e esta linha será ignorada.
+        if (bookingIdToExclude.HasValue)
+        {
+            query = query.Where(b => b.Id != bookingIdToExclude.Value);
+        }
+
+        query = query.Where(b =>
+            b.InitialDate < newEndTime && // Um agendamento existente que começa ANTES do nosso novo terminar
+            b.FinalDate > newStartTime    // E que termina DEPOIS do nosso novo começar
+        );
+
+        return await query.ToListAsync();
     }
 }

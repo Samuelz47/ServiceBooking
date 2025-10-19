@@ -20,4 +20,5 @@ public class ServiceOffering
     [MaxLength(300)]
     public string? Description { get; set; }
     public ICollection<Provider>? Providers { get; set; }
+    public int TotalHours { get; set; }
 }

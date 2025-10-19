@@ -80,6 +80,11 @@ public class ServiceOfferingService : IServiceOfferingService
             service.Description = serviceDto.Description;
         }
 
+        if (serviceDto.TotalHours.HasValue)
+        {
+            service.TotalHours = serviceDto.TotalHours.Value;
+        }
+
         _serviceOfferingRepository.Update(service);
         await _uof.CommitAsync();
 
