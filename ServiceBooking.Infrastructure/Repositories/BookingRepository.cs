@@ -23,6 +23,7 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
         return await _context.Bookings
                              .Include(b => b.ServiceOffering)
                              .Include(b => b.Provider)
+                             .Include(b => b.User)
                              .FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId);
     }
 
@@ -36,7 +37,8 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
 
     public async Task<PagedResult<Booking>> GetByUserIdAsync(int userId, QueryParameters queryParameters)
     {
-        var query = _context.Bookings.Where(b => b.UserId == userId);
+        var query = _context.Bookings.Where(b => b.Status != BookingStatus.Cancelled)
+                                     .Where(b => b.UserId == userId);
 
         var totalCount = await query.CountAsync();
         
