@@ -68,69 +68,47 @@ public class BookingController : ControllerBase
     [Authorize]
     public async Task<IActionResult> RegisterBooking([FromBody] BookingForRegistrationDTO bookingDto)
     {
-        try
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
-            if (userIdClaim is null)
-            {
-                return Unauthorized("Token inválido ou não contém o ID do usuário.");
-            }
-
-            if (!int.TryParse(userIdClaim.Value, out var userId))
-            {
-                return Unauthorized("ID do usuário no token está em um formato inválido.");
-            }
-
-            var createdBooking = await _bookingService.CreateBookingAsync(bookingDto, userId);
-            return CreatedAtAction(nameof(GetBookingById),
-                                    new { id = createdBooking.Id },
-                                    createdBooking);
-        }
-        catch (InvalidOperationException ex)
+        if (userIdClaim is null)
         {
-            return BadRequest(new { Error = ex.Message });
+            return Unauthorized("Token inválido ou não contém o ID do usuário.");
         }
-        catch (Exception)
+
+        if (!int.TryParse(userIdClaim.Value, out var userId))
         {
-            return StatusCode(500, "Ocorreu um erro inesperado ao processar o agendamento.");
+            return Unauthorized("ID do usuário no token está em um formato inválido.");
         }
+
+        var createdBooking = await _bookingService.CreateBookingAsync(bookingDto, userId);
+        return CreatedAtAction(nameof(GetBookingById),
+                                new { id = createdBooking.Id },
+                                createdBooking);
     }
     [HttpPut("{id}", Name = "BookingUpdate")]
     [Authorize]
 
     public async Task<ActionResult<BookingDTO>> UpdateBooking (BookingForRescheduleDTO dto, int id)
     {
-        try
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim is null)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-
-            if (userIdClaim is null)
-            {
-                return Unauthorized("Token inválido ou não contém o ID do usuário.");
-            }
-
-            if (!int.TryParse(userIdClaim.Value, out var userId))
-            {
-                return Unauthorized("ID do usuário no token está em um formato inválido.");
-            }
-
-            var booking = await _bookingService.UpdateBookingAsync(id, userId, dto);
-            if (booking == null)
-            {
-                return NotFound("Usuário não possui agendamento");
-            }
-
-            return Ok(booking);
+            return Unauthorized("Token inválido ou não contém o ID do usuário.");
         }
-        catch (InvalidOperationException ex)
+
+        if (!int.TryParse(userIdClaim.Value, out var userId))
         {
-            return Conflict(new { Error = ex.Message });
+            return Unauthorized("ID do usuário no token está em um formato inválido.");
         }
-        catch (Exception)
+
+        var booking = await _bookingService.UpdateBookingAsync(id, userId, dto);
+        if (booking == null)
         {
-            return StatusCode(500, "Ocorreu um erro inesperado.");
+            return NotFound("Usuário não possui agendamento");
         }
+
+        return Ok(booking);
     }
 
     [HttpDelete("{id}")]

@@ -58,67 +58,38 @@ public class ServiceOfferingController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ServiceOfferingForRegistrationDTO>> RegisterServiceAsync(ServiceOfferingForRegistrationDTO serviceDto)
     {
-        try
-        {
-            var createdService = await _serviceOfferingService.RegisterServiceAsync(serviceDto);
-            return CreatedAtAction(nameof(GetServiceOfferingById),
-                                    new { id = createdService.Id },
-                                    createdService);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { Error = "Ocorreu um erro inesperado no servidor." });
-        }
+        var createdService = await _serviceOfferingService.RegisterServiceAsync(serviceDto);
+        return CreatedAtAction(nameof(GetServiceOfferingById),
+                                new { id = createdService.Id },
+                                createdService);
     }
 
     [HttpPut("{id}", Name = "UpdateService")]
     //[Authorize]
     public async Task<ActionResult<ServiceOfferingDTO>> UpdateServiceAsync([FromBody]ServiceOfferingForUpdateDTO serviceDto, int id)
     {
-        try
-        {
-            var serviceOfferingDto = await _serviceOfferingService.UpdateServiceOfferingAsync(serviceDto, id);
+        var serviceOfferingDto = await _serviceOfferingService.UpdateServiceOfferingAsync(serviceDto, id);
 
-            if (serviceOfferingDto is null)
-            {
-                return NotFound($"Nenhum serviço foi encontrado com o ID {id}");
-            }
-
-            return Ok(serviceOfferingDto);
-        }
-        catch (Exception)
+        if (serviceOfferingDto is null)
         {
-            return StatusCode(500, "Ocorreu um erro inesperado ao atualizador o serviço");
+            return NotFound($"Nenhum serviço foi encontrado com o ID {id}");
         }
+
+        return Ok(serviceOfferingDto);
     }
 
     [HttpPut("{id}/providers", Name = "UpdateProviderServices")]
     //[Authorize]
     public async Task<ActionResult<ProviderDetailsDto>> UpdateProvidersOfServices([FromBody] ServiceOfferingUpdatesProvidersDTO serviceDto, int id)
     {
-        try
-        {
-            var updatedService = await _serviceOfferingService.UpdateProvidersAsync(serviceDto, id);
+        var updatedService = await _serviceOfferingService.UpdateProvidersAsync(serviceDto, id);
 
-            if (updatedService is null)
-            {
-                return NotFound($"Nenhum serviço foi encontrado com o ID {id}");
-            }
+        if (updatedService is null)
+        {
+            return NotFound($"Nenhum serviço foi encontrado com o ID {id}");
+        }
 
-            return Ok(updatedService);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { Error = "Ocorreu um erro inesperado no servidor." });
-        }
+        return Ok(updatedService);
     }
 
     [HttpDelete("{id}")]

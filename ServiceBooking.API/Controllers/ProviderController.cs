@@ -56,67 +56,38 @@ public class ProviderController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ProviderForRegistrationDto>> RegisterProviderAsync(ProviderForRegistrationDto providerDto)
     {
-        try
-        {
-            var createdProvider = await _providerService.RegisterProviderAsync(providerDto);
-            return CreatedAtAction(nameof(GetProviderById), 
-                                    new { id = createdProvider.Id },
-                                    createdProvider);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { Error = "Ocorreu um erro inesperado no servidor." });
-        }
+        var createdProvider = await _providerService.RegisterProviderAsync(providerDto);
+        return CreatedAtAction(nameof(GetProviderById), 
+                                new { id = createdProvider.Id },
+                                createdProvider);
     }
 
     [HttpPut("{id}", Name = "UpdateProvider")]
     //[Authorize]
     public async Task<ActionResult<ProviderDto>> UpdateProviderAsync([FromBody] ProviderForUpdateDTO providerDto, int id)
     {
-        try
-        {
-            var updatedProvider = await _providerService.UpdateAsync(providerDto, id);
+        var updatedProvider = await _providerService.UpdateAsync(providerDto, id);
 
-            if (updatedProvider is null)
-            {
-                return NotFound($"Nenhum provedor foi encontrado com o ID {id}");
-            }
-
-            return Ok(updatedProvider);
-        }
-        catch (Exception)
+        if (updatedProvider is null)
         {
-            return StatusCode(500, "Ocorreu um erro inesperado ao atualizador o provedor");
+            return NotFound($"Nenhum provedor foi encontrado com o ID {id}");
         }
+
+        return Ok(updatedProvider);
     }
 
     [HttpPut("{id}/services", Name = "UpdateServicesProvider" )]
     //[Authorize]
     public async Task<ActionResult<ProviderDetailsDto>> UpdateServicesOfProvider([FromBody] ProviderUpdateServicesDTO providerDto, int id)
     {
-        try
-        {
-            var updatedProvider = await _providerService.UpdateServicesAsync(providerDto, id);
+        var updatedProvider = await _providerService.UpdateServicesAsync(providerDto, id);
 
-            if(updatedProvider is null)
-            {
-                return NotFound($"Nenhum provedor foi encontrado com o ID {id}");
-            }
+        if(updatedProvider is null)
+        {
+            return NotFound($"Nenhum provedor foi encontrado com o ID {id}");
+        }
 
-            return Ok(updatedProvider);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { Error = "Ocorreu um erro inesperado no servidor." });
-        }
+        return Ok(updatedProvider);
     }
 
     [HttpDelete("{id}")]
