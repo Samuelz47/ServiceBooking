@@ -15,38 +15,17 @@ public class ProviderService : IProviderService
 {
     private readonly IProviderRepository _providerRepository;
     private readonly IServiceOfferingRepository _serviceOfferingRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _uof;
     private readonly IMapper _mapper;
 
-    public ProviderService(IProviderRepository providerRepository, IUnitOfWork uof, IMapper mapper, IServiceOfferingRepository serviceOfferingRepository)
+    public ProviderService(IProviderRepository providerRepository, IUnitOfWork uof, IMapper mapper, IServiceOfferingRepository serviceOfferingRepository, IUserRepository userRepository)
     {
         _providerRepository = providerRepository;
         _uof = uof;
         _mapper = mapper;
         _serviceOfferingRepository = serviceOfferingRepository;
-    }
-
-    public async Task<ProviderDto> RegisterProviderAsync(ProviderForRegistrationDto providerRegisterDto)
-    {
-        var existingProvider = await _providerRepository.GetAsync(p => p.Name == providerRegisterDto.Name);
-        if (existingProvider is not null)
-        {
-            throw new InvalidOperationException("Esse prestador já foi cadastrado");
-        }
-
-        var provider = new Provider
-        {
-            Name = providerRegisterDto.Name,
-            Description = providerRegisterDto.Description,
-            LogoUrl = providerRegisterDto.LogoUrl,
-            ConcurrentCapacity = providerRegisterDto.ConcurrentCapacity.Value,
-        };
-
-        _providerRepository.Create(provider);
-        await _uof.CommitAsync();
-
-        var providerDto = _mapper.Map<ProviderDto>(provider);
-        return providerDto;
+        _userRepository = userRepository;
     }
 
     public async Task<ProviderDetailsDto?> GetAsync(int id)
@@ -145,5 +124,36 @@ public class ProviderService : IProviderService
         var providerDto = _mapper.Map<ProviderDetailsDto>(provider);
         await _uof.CommitAsync();
         return providerDto;
+    }
+
+    public async Task<ProviderDto> CreateProviderWithUserAsync(ProviderForRegistrationDto dto)
+    {
+        var existingUser = await _userRepository.GetUserByEmailAsync(dto.Email);
+        if (existingUser is not null)
+        {
+            throw new InvalidOperationException("O email fornecido já está em uso.");
+        }
+
+        var newUser = new User
+        {
+            Name = dto.UserName,
+            Email = dto.Email,
+            Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Role = "Provider"
+        };
+        _userRepository.Create(newUser);
+
+        var newProvider = new Provider
+        {
+            Name = dto.Name,
+            Description = dto.Description,
+            ConcurrentCapacity = dto.ConcurrentCapacity.Value,
+            User = newUser
+        };
+        _providerRepository.Create(newProvider);
+
+        await _uof.CommitAsync();
+
+        return _mapper.Map<ProviderDto>(newProvider);
     }
 }

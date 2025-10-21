@@ -56,7 +56,7 @@ public class ProviderController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ProviderForRegistrationDto>> RegisterProviderAsync(ProviderForRegistrationDto providerDto)
     {
-        var createdProvider = await _providerService.RegisterProviderAsync(providerDto);
+        var createdProvider = await _providerService.CreateProviderWithUserAsync(providerDto);
         return CreatedAtAction(nameof(GetProviderById), 
                                 new { id = createdProvider.Id },
                                 createdProvider);

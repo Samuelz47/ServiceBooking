@@ -31,7 +31,8 @@ public class TokenService : ITokenService
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Name, user.Name)
+            new Claim(JwtRegisteredClaimNames.Name, user.Name),
+            new Claim(ClaimTypes.Role, user.Role)
         };
 
         // 3. Montando o Token

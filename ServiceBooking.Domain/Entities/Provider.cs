@@ -22,4 +22,6 @@ public class Provider
     public string? LogoUrl{ get; set; }
     public ICollection<ServiceOffering>? Services { get; set; }
     public int ConcurrentCapacity { get; set; } = 1;
+    public int UserId { get; set; }
+    public User User { get; set; }
 }

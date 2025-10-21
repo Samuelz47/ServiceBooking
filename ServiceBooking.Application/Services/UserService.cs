@@ -64,6 +64,7 @@ public class UserService : IUserService
 
         var newUser = _mapper.Map<User>(userRegisterDto);                               // Cria usuário com os dados do Dto
         newUser.Password = BCrypt.Net.BCrypt.HashPassword(userRegisterDto.Password);    //Salvando a senha encriptografada
+        newUser.Role = "Client";
 
         await _userRepository.AddUserAsync(newUser);                                    // Adiciona ao banco
         await _uof.CommitAsync();
