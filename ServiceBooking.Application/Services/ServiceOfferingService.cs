@@ -14,16 +14,14 @@ namespace ServiceBooking.Application.Services;
 public class ServiceOfferingService : IServiceOfferingService
 {
     private readonly IServiceOfferingRepository _serviceOfferingRepository;
-    private readonly IProviderRepository _providerRepository;
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _uof;
 
-    public ServiceOfferingService(IServiceOfferingRepository serviceOfferingRepository, IMapper mapper, IUnitOfWork uof, IProviderRepository providerRepository)
+    public ServiceOfferingService(IServiceOfferingRepository serviceOfferingRepository, IMapper mapper, IUnitOfWork uof)
     {
         _serviceOfferingRepository = serviceOfferingRepository;
         _mapper = mapper;
         _uof = uof;
-        _providerRepository = providerRepository;
     }
 
     public async Task<ServiceOfferingDetailsDTO?> GetServiceAsync(int id)
@@ -103,36 +101,5 @@ public class ServiceOfferingService : IServiceOfferingService
         _serviceOfferingRepository.Delete(service);
         await _uof.CommitAsync();
         return true;
-    }
-
-    public async Task<ServiceOfferingDetailsDTO?> UpdateProvidersAsync(ServiceOfferingUpdatesProvidersDTO serviceUpdate, int id)
-    {
-        var service = await _serviceOfferingRepository.GetByIdWithDetailsAsync(id);     // Pegamos o servico atraves do ID
-        if (service is null)
-        {
-            return null;
-        }
-
-        if(serviceUpdate.ProvidersIds is null)                                          // Verificando se os ids para provedores passados no DTO são nulos
-        {
-            throw new ArgumentException("A lista de IDs de provedor não pode ser nula");
-        }
-
-        var providersFromDb = await _providerRepository.GetByIdsAsync(serviceUpdate.ProvidersIds);      // Transformando a lista de IDs recebida em uma lista de Entidades de provedores
-
-        if (providersFromDb.Count != serviceUpdate.ProvidersIds.Count)                                  // Verificação se houve alguma falha na hora da transformação
-        {
-            throw new InvalidOperationException("Um ou mais IDs de provedor enviados são inválidos.");
-        }
-        
-        service.Providers.Clear();                                                      // Limpa a lista de provedores dentro de serviços
-        foreach (var provider in providersFromDb)
-        {
-            service.Providers.Add(provider);                                            // Preenche ela com as entidades recebidas
-        }
-        
-        var serviceDto = _mapper.Map<ServiceOfferingDetailsDTO>(service);
-        await _uof.CommitAsync();
-        return serviceDto;
     }
 }

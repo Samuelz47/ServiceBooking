@@ -153,4 +153,24 @@ public class BookingService : IBookingService
         var updatedBooking = _mapper.Map<BookingDTO>(booking);
         return updatedBooking;
     }
+
+    public async Task<PagedResult<BookingDTO>> GetBookingsByProvidersAsync(int userId, QueryParameters queryParameters)
+    {
+        var provider = await _providerRepository.GetByUserId(userId);
+        if (provider is null)
+        {
+            return null;
+        }
+
+        var pagedResult = await _bookingRepository.GetBookingsByProviderIdAsync(provider.Id, queryParameters);
+        var bookingsDTO = _mapper.Map<IEnumerable<BookingDTO>>(pagedResult.Items);
+
+        return new PagedResult<BookingDTO>
+        (
+            bookingsDTO,
+            pagedResult.TotalCount,
+            pagedResult.PageNumber,
+            pagedResult.PageSize
+        );
+    }
 }

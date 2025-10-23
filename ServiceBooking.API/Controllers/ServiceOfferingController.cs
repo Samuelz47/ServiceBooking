@@ -78,20 +78,6 @@ public class ServiceOfferingController : ControllerBase
         return Ok(serviceOfferingDto);
     }
 
-    [HttpPut("{id}/providers", Name = "UpdateProviderServices")]
-    //[Authorize]
-    public async Task<ActionResult<ProviderDetailsDto>> UpdateProvidersOfServices([FromBody] ServiceOfferingUpdatesProvidersDTO serviceDto, int id)
-    {
-        var updatedService = await _serviceOfferingService.UpdateProvidersAsync(serviceDto, id);
-
-        if (updatedService is null)
-        {
-            return NotFound($"Nenhum serviço foi encontrado com o ID {id}");
-        }
-
-        return Ok(updatedService);
-    }
-
     [HttpDelete("{id}")]
     //[Authorize]
     public async Task<IActionResult> DeleteServiceOfferingAsync(int id)

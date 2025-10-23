@@ -13,4 +13,5 @@ public interface IBookingRepository : IRepository<Booking>
     Task<PagedResult<Booking>> GetByUserIdAsync(int userId, QueryParameters queryParameters);
     Task<Booking?> GetByIdAndUserIdAsync(int bookingId, int userId);
     Task<List<Booking>> GetConflictingBookingsAsync(int providerId, DateTime newStartTime, DateTime newEndTime, int? bookingIdToExclude = null);
+    Task<PagedResult<Booking>> GetBookingsByProviderIdAsync(int providerId, QueryParameters queryParameters);
 }

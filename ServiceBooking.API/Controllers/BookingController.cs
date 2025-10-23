@@ -64,6 +64,44 @@ public class BookingController : ControllerBase
         return Ok(pagedResult.Items);
     }
 
+    [HttpGet("provider-schedule")]
+    [Authorize (Roles = "Provider")]
+    public async Task<IActionResult> GetBookingsByProvider([FromQuery] QueryParameters queryParameters)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim is null)
+        {
+            return Unauthorized("Token inválido ou não contém o ID do usuário.");
+        }
+
+        if (!int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Unauthorized("ID do usuário no token está em um formato inválido.");
+        }
+
+        var pagedResult = await _bookingService.GetBookingsByProvidersAsync(userId, queryParameters);
+
+        if (pagedResult is null)
+        {
+            return Forbid("O usuário atual não está associado a um perfil de provedor.");
+        }
+
+        var paginationMetadata = new 
+        {
+            pagedResult.TotalCount,
+            pagedResult.PageSize,
+            pagedResult.PageNumber,
+            pagedResult.TotalPages,
+            pagedResult.HasNextPage,
+            pagedResult.HasPreviousPage
+        };
+
+        Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
+
+        return Ok(pagedResult.Items);
+    }
+
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> RegisterBooking([FromBody] BookingForRegistrationDTO bookingDto)

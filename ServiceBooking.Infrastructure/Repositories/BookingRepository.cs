@@ -8,6 +8,7 @@ using ServiceBooking.Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -73,5 +74,22 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
         );
 
         return await query.ToListAsync();
+    }
+    public async Task<PagedResult<Booking>> GetBookingsByProviderIdAsync(int providerId, QueryParameters queryParameters)
+    {
+        var query = _context.Bookings.AsNoTracking()
+                                     .Where(b => b.ProviderId == providerId)
+                                     .Where(b => b.Status != BookingStatus.Cancelled);
+
+        var totalCount = await query.CountAsync();
+        var items = await query.Include(b => b.Provider)
+                               .Include(b => b.ServiceOffering)
+                               .Include(b => b.User)
+                               .AsNoTracking()
+                               .Skip((queryParameters.PageNumber - 1) * queryParameters.PageSize)
+                               .Take(queryParameters.PageSize)
+                               .ToListAsync();
+
+        return new PagedResult<Booking>(items, queryParameters.PageNumber, queryParameters.PageSize, totalCount);
     }
 }
