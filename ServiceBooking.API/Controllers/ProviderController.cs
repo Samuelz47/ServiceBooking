@@ -57,13 +57,13 @@ public class ProviderController : ControllerBase
     public async Task<ActionResult<ProviderForRegistrationDto>> RegisterProviderAsync(ProviderForRegistrationDto providerDto)
     {
         var createdProvider = await _providerService.CreateProviderWithUserAsync(providerDto);
-        return CreatedAtAction(nameof(GetProviderById), 
+        return CreatedAtAction(nameof(GetProviderById),
                                 new { id = createdProvider.Id },
                                 createdProvider);
     }
 
     [HttpPut("{id}", Name = "UpdateProvider")]
-    //[Authorize]
+    [Authorize(Roles = "Admin, Provider")]
     public async Task<ActionResult<ProviderDto>> UpdateProviderAsync([FromBody] ProviderForUpdateDTO providerDto, int id)
     {
         var updatedProvider = await _providerService.UpdateAsync(providerDto, id);
@@ -76,13 +76,13 @@ public class ProviderController : ControllerBase
         return Ok(updatedProvider);
     }
 
-    [HttpPut("{id}/services", Name = "UpdateServicesProvider" )]
-    //[Authorize]
+    [HttpPut("{id}/services", Name = "UpdateServicesProvider")]
+    [Authorize(Roles = "Admin, Provider")]
     public async Task<ActionResult<ProviderDetailsDto>> UpdateServicesOfProvider([FromBody] ProviderUpdateServicesDTO providerDto, int id)
     {
         var updatedProvider = await _providerService.UpdateServicesAsync(providerDto, id);
 
-        if(updatedProvider is null)
+        if (updatedProvider is null)
         {
             return NotFound($"Nenhum provedor foi encontrado com o ID {id}");
         }
@@ -91,7 +91,7 @@ public class ProviderController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    //[Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteProviderAsync(int id)
     {
         bool result = await _providerService.DeleteAsync(id);

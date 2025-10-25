@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServiceBooking.Application.DTOs;
 using ServiceBooking.Application.Interfaces;
+using ServiceBooking.Application.Services;
 using ServiceBooking.Shared.Common;
 using System.Security.Claims;
 using System.Text.Json;
@@ -22,6 +23,7 @@ public class BookingController : ControllerBase
     }
 
     [HttpGet("{id}", Name = "GetBookingById")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetBookingById(int id)
     {
         var existingBooking = await _bookingService.GetBookingAsync(id);
@@ -33,7 +35,7 @@ public class BookingController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "User")]
     public async Task<IActionResult> GetMyBookings([FromQuery] QueryParameters queryParameters)
     {
         // 1. Pega o ID do usuário logado a partir do token JWT de forma segura.
@@ -65,7 +67,7 @@ public class BookingController : ControllerBase
     }
 
     [HttpGet("provider-schedule")]
-    [Authorize (Roles = "Provider")]
+    [Authorize (Roles = "Provider, Admin")]
     public async Task<IActionResult> GetBookingsByProvider([FromQuery] QueryParameters queryParameters)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -103,7 +105,7 @@ public class BookingController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "User")]
     public async Task<IActionResult> RegisterBooking([FromBody] BookingForRegistrationDTO bookingDto)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -123,8 +125,9 @@ public class BookingController : ControllerBase
                                 new { id = createdBooking.Id },
                                 createdBooking);
     }
+
     [HttpPut("{id}", Name = "BookingUpdate")]
-    [Authorize]
+    [Authorize(Roles = "User")]
 
     public async Task<ActionResult<BookingDTO>> UpdateBooking (BookingForRescheduleDTO dto, int id)
     {
@@ -149,8 +152,35 @@ public class BookingController : ControllerBase
         return Ok(booking);
     }
 
+    [HttpPut("{id}/confirm")]
+    [Authorize(Roles = "Provider, Admin")]
+
+    public async Task<ActionResult<ProviderDto>> ConfirmBooking(int id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim is null)
+        {
+            return Unauthorized("Token inválido ou não contém o ID do usuário.");
+        }
+
+        if (!int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Unauthorized("ID do usuário no token está em um formato inválido.");
+        }
+
+        var updatedProvider = await _bookingService.ConfirmBookingAsync(id, userId);
+
+        if (updatedProvider is null)
+        {
+            return NotFound("ID do agendamento não encontrado");
+        }
+
+        return Ok(updatedProvider);
+    }
+
     [HttpDelete("{id}")]
-    [Authorize]
+    [Authorize(Roles = "User, Provider, Admin")]
     public async Task<IActionResult> CancelBooking (int id)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);

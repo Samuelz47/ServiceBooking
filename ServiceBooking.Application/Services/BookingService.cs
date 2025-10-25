@@ -173,4 +173,35 @@ public class BookingService : IBookingService
             pagedResult.PageSize
         );
     }
+
+    public async Task<BookingDTO?> ConfirmBookingAsync(int id, int userId)
+    {
+        var booking = await _bookingRepository.GetByIdWithDetailsAsync(id);
+        if (booking is null)
+        {
+            return null;
+        }
+
+        var provider = await _providerRepository.GetByUserIdAsync(userId);
+        if (provider is null)
+        {
+            throw new UnauthorizedAccessException("O usuário atual não é um provedor válido.");
+        }
+        if (booking.ProviderId != provider.Id)
+        {
+            throw new UnauthorizedAccessException("Este provedor não tem permissão para confirmar este agendamento.");
+        }
+        if (booking.Status != BookingStatus.Pending)
+        {
+            throw new InvalidOperationException("Este agendamento não pode mais ser confirmado.");
+        }
+
+        booking.Status = BookingStatus.Confirmed;
+
+        _bookingRepository.Update(booking);
+        await _uof.CommitAsync();
+
+        var updatedBooking = _mapper.Map<BookingDTO>(booking);
+        return updatedBooking;
+    }
 }

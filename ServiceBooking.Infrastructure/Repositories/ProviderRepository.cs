@@ -28,7 +28,7 @@ public class ProviderRepository : Repository<Provider>, IProviderRepository
                                        .FirstOrDefaultAsync(s => s.Id == id);
     }
 
-    public async Task<Provider?> GetByUserId(int userId)
+    public async Task<Provider?> GetByUserIdAsync(int userId)
     {
         return await _context.Providers.Include(u => u.User)
                                        .FirstOrDefaultAsync(p => p.UserId == userId);

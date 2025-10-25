@@ -6,6 +6,7 @@ using ServiceBooking.Application.DTOs;
 using ServiceBooking.Application.Interfaces;
 using ServiceBooking.Domain.Entities;
 using ServiceBooking.Domain.Repositories;
+using System.Data;
 
 namespace ServiceBooking.API.Controllers;
 [Route("[controller]")]
@@ -22,7 +23,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{id}", Name = "GetUserById")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetUser(int id)
     {
         var userDto = await _userService.GetAsync(id);

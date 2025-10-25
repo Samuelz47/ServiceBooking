@@ -16,4 +16,5 @@ public interface IBookingService
     Task<bool> CancelAsync(int id, int userId);
     Task<BookingDTO> UpdateBookingAsync(int id, int userId, BookingForRescheduleDTO dto);
     Task<PagedResult<BookingDTO>> GetBookingsByProvidersAsync(int userId, QueryParameters queryParameters);
+    Task<BookingDTO> ConfirmBookingAsync(int id, int userId);
 }

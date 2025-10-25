@@ -7,6 +7,7 @@ using ServiceBooking.Application.Interfaces;
 using ServiceBooking.Application.Services;
 using ServiceBooking.Domain.Repositories;
 using ServiceBooking.Shared.Common;
+using System.Data;
 using System.Text.Json;
 
 namespace ServiceBooking.API.Controllers;
@@ -56,6 +57,7 @@ public class ServiceOfferingController : ControllerBase
         return Ok(pagedResult.Items);
     }
     [HttpPost]
+    [Authorize(Roles = "Admin, Provider")]
     public async Task<ActionResult<ServiceOfferingForRegistrationDTO>> RegisterServiceAsync(ServiceOfferingForRegistrationDTO serviceDto)
     {
         var createdService = await _serviceOfferingService.RegisterServiceAsync(serviceDto);
@@ -65,7 +67,7 @@ public class ServiceOfferingController : ControllerBase
     }
 
     [HttpPut("{id}", Name = "UpdateService")]
-    //[Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ServiceOfferingDTO>> UpdateServiceAsync([FromBody]ServiceOfferingForUpdateDTO serviceDto, int id)
     {
         var serviceOfferingDto = await _serviceOfferingService.UpdateServiceOfferingAsync(serviceDto, id);
@@ -79,7 +81,7 @@ public class ServiceOfferingController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    //[Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteServiceOfferingAsync(int id)
     {
         bool result = await _serviceOfferingService.DeleteAsync(id);

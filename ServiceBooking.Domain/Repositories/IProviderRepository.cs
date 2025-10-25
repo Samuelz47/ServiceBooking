@@ -10,5 +10,5 @@ public interface IProviderRepository : IRepository<Provider>
 {
     Task<Provider?> GetByIdWithDetailsAsync(int id);
     Task<List<Provider>> GetByIdsAsync(IEnumerable<int> ids);
-    Task<Provider?> GetByUserId(int userId);
+    Task<Provider?> GetByUserIdAsync(int userId);
 }
