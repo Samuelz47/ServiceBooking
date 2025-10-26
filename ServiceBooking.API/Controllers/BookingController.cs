@@ -184,18 +184,15 @@ public class BookingController : ControllerBase
     public async Task<IActionResult> CancelBooking (int id)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-
-        if (userIdClaim is null)
+        var roleClaim = User.FindFirst(ClaimTypes.Role);
+        if (userIdClaim is null || roleClaim is null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return Unauthorized("Token inválido ou não contém o ID do usuário.");
         }
 
-        if (!int.TryParse(userIdClaim.Value, out var userId))
-        {
-            return Unauthorized("ID do usuário no token está em um formato inválido.");
-        }
+        bool itsProvider = User.IsInRole("Provider");
         
-        bool cancelledBooking = await _bookingService.CancelAsync(id, userId);
+        bool cancelledBooking = await _bookingService.CancelAsync(id, userId, itsProvider);
         if (!cancelledBooking)
         {
             return NotFound("Agendamento não encontrado ou não pertence a este usuário.");

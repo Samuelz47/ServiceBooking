@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using ServiceBooking.API.Middleware;
 using ServiceBooking.CrossCutting.DependencyInjection;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +62,22 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddInfrastructure(builder.Configuration);      // Adicionando injeção de dependencia da connectionString
 
+builder.Services.AddRateLimiter(options =>
+{
+    // Define o código de status quando o limite é atingido
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Adiciona uma política de "Janela Fixa" chamada "fixed"
+    options.AddFixedWindowLimiter(policyName: "fixed", fixedWindow =>
+    {
+        fixedWindow.PermitLimit = 100; // Máximo de 100 requisições...
+        fixedWindow.Window = TimeSpan.FromMinutes(1); // ...a cada 1 minuto.
+        // A fila de espera, se o limite for atingido
+        fixedWindow.QueueLimit = 25; // Rejeita imediatamente se o limite for atingido
+        fixedWindow.QueueProcessingOrder = QueueProcessingOrder.OldestFirst; // Ordem da fila
+    });
+});
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
@@ -71,6 +89,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

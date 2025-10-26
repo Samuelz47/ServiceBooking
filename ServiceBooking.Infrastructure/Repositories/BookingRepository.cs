@@ -92,4 +92,15 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
 
         return new PagedResult<Booking>(items, queryParameters.PageNumber, queryParameters.PageSize, totalCount);
     }
+
+    public async Task<Booking?> GetByIdAndProviderIdAsync(int id, int providerId)
+    {
+        {
+            return await _context.Bookings
+                                 .Include(b => b.ServiceOffering)
+                                 .Include(b => b.Provider)
+                                 .Include(b => b.User)
+                                 .FirstOrDefaultAsync(b => b.Id == id && b.ProviderId == providerId);
+        }
+    }
 }

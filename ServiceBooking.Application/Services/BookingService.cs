@@ -31,9 +31,23 @@ public class BookingService : IBookingService
         _userRepository = userRepository;
     }
 
-    public async Task<bool> CancelAsync(int id, int userId)
+    public async Task<bool> CancelAsync(int id, int userId, bool itsProvider)
     {
-        var existingBooking = await _bookingRepository.GetByIdAndUserIdAsync(id, userId);
+        Booking? existingBooking = null;
+
+        if(itsProvider)
+        {
+            var provider = await _providerRepository.GetByUserIdAsync(userId);
+            if (provider is null)
+            {
+                throw new InvalidOperationException("Usuário provedor inválido ou não encontrado.");
+            }
+            existingBooking = await _bookingRepository.GetByIdAndProviderIdAsync(id, provider.Id);
+        }
+        else
+        {
+            existingBooking = await _bookingRepository.GetByIdAndUserIdAsync(id, userId);
+        }
 
         if (existingBooking is null)
         {
@@ -41,6 +55,7 @@ public class BookingService : IBookingService
         }
 
         existingBooking.Status = BookingStatus.Cancelled;
+        _bookingRepository.Update(existingBooking);
         await _uof.CommitAsync();
         return true;
     }
@@ -156,7 +171,7 @@ public class BookingService : IBookingService
 
     public async Task<PagedResult<BookingDTO>> GetBookingsByProvidersAsync(int userId, QueryParameters queryParameters)
     {
-        var provider = await _providerRepository.GetByUserId(userId);
+        var provider = await _providerRepository.GetByUserIdAsync(userId);
         if (provider is null)
         {
             return null;

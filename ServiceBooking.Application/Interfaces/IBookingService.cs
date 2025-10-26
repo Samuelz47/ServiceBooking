@@ -13,7 +13,7 @@ public interface IBookingService
     Task<BookingDTO> CreateBookingAsync(BookingForRegistrationDTO dto, int id);
     Task<BookingDTO> GetBookingAsync(int id);
     Task<PagedResult<BookingDTO>> GetBookingsByUserIdAsync(int userId, QueryParameters queryParameters);
-    Task<bool> CancelAsync(int id, int userId);
+    Task<bool> CancelAsync(int id, int userId, bool itsProvider);
     Task<BookingDTO> UpdateBookingAsync(int id, int userId, BookingForRescheduleDTO dto);
     Task<PagedResult<BookingDTO>> GetBookingsByProvidersAsync(int userId, QueryParameters queryParameters);
     Task<BookingDTO> ConfirmBookingAsync(int id, int userId);
