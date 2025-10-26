@@ -155,7 +155,7 @@ public class BookingController : ControllerBase
     [HttpPut("{id}/confirm")]
     [Authorize(Roles = "Provider, Admin")]
 
-    public async Task<ActionResult<ProviderDto>> ConfirmBooking(int id)
+    public async Task<ActionResult<BookingDTO>> ConfirmBooking(int id)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
@@ -169,14 +169,14 @@ public class BookingController : ControllerBase
             return Unauthorized("ID do usuário no token está em um formato inválido.");
         }
 
-        var updatedProvider = await _bookingService.ConfirmBookingAsync(id, userId);
+        var updatedBooking = await _bookingService.ConfirmBookingAsync(id, userId);
 
-        if (updatedProvider is null)
+        if (updatedBooking is null)
         {
             return NotFound("ID do agendamento não encontrado");
         }
 
-        return Ok(updatedProvider);
+        return Ok(updatedBooking);
     }
 
     [HttpDelete("{id}")]

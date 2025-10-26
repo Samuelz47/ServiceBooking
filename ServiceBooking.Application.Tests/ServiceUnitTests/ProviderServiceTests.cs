@@ -7,6 +7,7 @@ using ServiceBooking.Domain.Repositories;
 using ServiceBooking.Shared.Common;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -232,5 +233,237 @@ public class ProviderServiceTests
         _mockProviderRepository.Verify(repo => repo.Update(It.IsAny<Provider>()), Times.Never);
         _mockUnitOfWork.Verify(uow => uow.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
         _mockMapper.Verify(mapper => mapper.Map<ProviderDto>(It.IsAny<Provider>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldReturnTrue_WhenProviderExists()
+    {
+        // Arrange
+        var providerId = 1;
+        var providerEntity = new Provider { Id = providerId, Name = "Provider Para Deletar" };
+
+        // Configura o GetAsync para encontrar o provedor
+        _mockProviderRepository
+            .Setup(repo => repo.GetAsync(It.IsAny<Expression<Func<Provider, bool>>>()))
+            .ReturnsAsync(providerEntity);
+
+        // Configura o Delete para não fazer nada (apenas ser rastreável)
+        _mockProviderRepository
+            .Setup(repo => repo.Delete(providerEntity));
+
+        // Configura o CommitAsync para simular sucesso
+        _mockUnitOfWork
+            .Setup(uof => uof.CommitAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1); // 1 significa que 1 linha foi afetada (sucesso)
+
+        // Act
+        var result = await _providerService.DeleteAsync(providerId);
+
+        // Assert
+        Assert.True(result); // O resultado deve ser verdadeiro
+
+        // Verifica se os métodos corretos foram chamados
+        _mockProviderRepository.Verify(repo => repo.GetAsync(It.IsAny<Expression<Func<Provider, bool>>>()), Times.Once);
+        _mockProviderRepository.Verify(repo => repo.Delete(providerEntity), Times.Once); // Verifica se o Delete foi chamado com a entidade correta
+        _mockUnitOfWork.Verify(uof => uof.CommitAsync(It.IsAny<CancellationToken>()), Times.Once); // Verifica se o Commit foi chamado
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldReturnFalse_WhenProviderNotFound()
+    {
+        // Arrange
+        var providerId = 99; // Um ID que não existe
+
+        // Configura o GetAsync para NÃO encontrar o provedor
+        _mockProviderRepository
+            .Setup(repo => repo.GetAsync(It.IsAny<Expression<Func<Provider, bool>>>()))
+            .ReturnsAsync((Provider?)null); // Retorna nulo
+
+        // Act
+        var result = await _providerService.DeleteAsync(providerId);
+
+        // Assert
+        Assert.False(result); // O resultado deve ser falso
+
+        // Verifica se o Delete e o Commit NUNCA foram chamados
+        _mockProviderRepository.Verify(repo => repo.Delete(It.IsAny<Provider>()), Times.Never);
+        _mockUnitOfWork.Verify(uof => uof.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+
+    [Fact]
+    public async Task CreateProviderWithUserAsync_ShouldCreateUserAndProvider_WhenEmailIsNew()
+    {
+        // Arrange
+        var dto = new ProviderForRegistrationDto
+        {
+            UserName = "Novo User",
+            Email = "novo@email.com",
+            Password = "Password123",
+            Name = "Novo Provider",
+            Description = "Desc",
+            ConcurrentCapacity = 1
+        };
+
+        var expectedDto = new ProviderDto { Id = 1, Name = "Novo Provider" };
+
+        // 1. Simula que o email NÃO existe
+        _mockUserRepository
+            .Setup(repo => repo.GetUserByEmailAsync(dto.Email))
+            .ReturnsAsync((User?)null);
+
+        // 2. Apenas rastreia as chamadas de criação
+        _mockUserRepository.Setup(repo => repo.Create(It.IsAny<User>()));
+        _mockProviderRepository.Setup(repo => repo.Create(It.IsAny<Provider>()));
+
+        // 3. Simula o Commit
+        _mockUnitOfWork.Setup(uof => uof.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        // 4. Configura o Mapper para retornar o DTO esperado
+        _mockMapper
+            .Setup(m => m.Map<ProviderDto>(It.IsAny<Provider>()))
+            .Returns(expectedDto);
+
+        // Act
+        var result = await _providerService.CreateProviderWithUserAsync(dto);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(expectedDto.Name, result.Name);
+
+        // Verifica se a sequência correta foi chamada
+        _mockUserRepository.Verify(repo => repo.GetUserByEmailAsync(dto.Email), Times.Once);
+        _mockUserRepository.Verify(repo => repo.Create(It.Is<User>(u => u.Email == dto.Email && u.Role == "Provider")), Times.Once);
+        _mockProviderRepository.Verify(repo => repo.Create(It.Is<Provider>(p => p.Name == dto.Name)), Times.Once);
+        _mockUnitOfWork.Verify(uof => uof.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateProviderWithUserAsync_ShouldThrowInvalidOperationException_WhenEmailExists()
+    {
+        // Arrange
+        var dto = new ProviderForRegistrationDto { Email = "existente@email.com" };
+        var existingUser = new User { Id = 1, Email = "existente@email.com" };
+
+        // 1. Simula que o email JÁ EXISTE
+        _mockUserRepository
+            .Setup(repo => repo.GetUserByEmailAsync(dto.Email))
+            .ReturnsAsync(existingUser);
+
+        // Act & Assert
+        // Verifica se o método lança a exceção esperada
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _providerService.CreateProviderWithUserAsync(dto)
+        );
+
+        // Verifica se a mensagem da exceção está correta
+        Assert.Equal("O email fornecido já está em uso.", exception.Message);
+
+        // Garante que nada foi criado ou salvo
+        _mockUserRepository.Verify(repo => repo.Create(It.IsAny<User>()), Times.Never);
+        _mockProviderRepository.Verify(repo => repo.Create(It.IsAny<Provider>()), Times.Never);
+        _mockUnitOfWork.Verify(uof => uof.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateServicesAsync_ShouldUpdateProviderServices_WhenProviderAndServicesAreValid()
+    {
+        // Arrange
+        var providerId = 1;
+        var dto = new ProviderUpdateServicesDTO { ServicesIds = new List<int> { 10, 20 } };
+
+        // 1. Simula o provedor
+        var providerEntity = new Provider { Id = providerId, Name = "Provider Antigo", Services = new Collection<ServiceOffering>() };
+
+        // 2. Simula os serviços que vêm do banco
+        var servicesFromDb = new List<ServiceOffering>
+        {
+            new ServiceOffering { Id = 10, Name = "Serviço 10" },
+            new ServiceOffering { Id = 20, Name = "Serviço 20" }
+        };
+
+        // 3. Simula o DTO de retorno
+        var expectedDto = new ProviderDetailsDto { Id = providerId, Name = "Provider Antigo" };
+
+        // Configura os Mocks
+        _mockProviderRepository
+            .Setup(repo => repo.GetByIdWithDetailsAsync(providerId))
+            .ReturnsAsync(providerEntity);
+
+        _mockServiceOfferingRepository
+            .Setup(repo => repo.GetByIdsAsync(dto.ServicesIds))
+            .ReturnsAsync(servicesFromDb);
+
+        _mockUnitOfWork.Setup(uof => uof.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        _mockMapper.Setup(m => m.Map<ProviderDetailsDto>(providerEntity)).Returns(expectedDto);
+
+        // Act
+        var result = await _providerService.UpdateServicesAsync(dto, providerId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(expectedDto.Id, result.Id);
+        // Verifica se a coleção de serviços no *objeto entidade* foi atualizada
+        Assert.Equal(2, providerEntity.Services.Count);
+        Assert.Equal(10, providerEntity.Services.First().Id);
+
+        // Verifica as chamadas
+        _mockProviderRepository.Verify(repo => repo.GetByIdWithDetailsAsync(providerId), Times.Once);
+        _mockServiceOfferingRepository.Verify(repo => repo.GetByIdsAsync(dto.ServicesIds), Times.Once);
+        _mockUnitOfWork.Verify(uof => uof.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateServicesAsync_ShouldReturnNull_WhenProviderNotFound()
+    {
+        // Arrange
+        var providerId = 99; // ID inexistente
+        var dto = new ProviderUpdateServicesDTO { ServicesIds = new List<int> { 1 } };
+
+        _mockProviderRepository
+            .Setup(repo => repo.GetByIdWithDetailsAsync(providerId))
+            .ReturnsAsync((Provider?)null); // Retorna nulo
+
+        // Act
+        var result = await _providerService.UpdateServicesAsync(dto, providerId);
+
+        // Assert
+        Assert.Null(result);
+        _mockServiceOfferingRepository.Verify(repo => repo.GetByIdsAsync(It.IsAny<List<int>>()), Times.Never);
+        _mockUnitOfWork.Verify(uof => uof.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateServicesAsync_ShouldThrowInvalidOperationException_WhenServiceIdIsInvalid()
+    {
+        // Arrange
+        var providerId = 1;
+        // Pede os serviços 10 e 99 (inválido)
+        var dto = new ProviderUpdateServicesDTO { ServicesIds = new List<int> { 10, 99 } };
+        var providerEntity = new Provider { Id = providerId, Services = new Collection<ServiceOffering>() };
+
+        // O banco só retorna o serviço 10
+        var servicesFromDb = new List<ServiceOffering>
+        {
+            new ServiceOffering { Id = 10, Name = "Serviço 10" }
+        };
+
+        _mockProviderRepository
+            .Setup(repo => repo.GetByIdWithDetailsAsync(providerId))
+            .ReturnsAsync(providerEntity);
+
+        // Simula o repositório retornando apenas 1 dos 2 serviços pedidos
+        _mockServiceOfferingRepository
+            .Setup(repo => repo.GetByIdsAsync(dto.ServicesIds))
+            .ReturnsAsync(servicesFromDb);
+
+        // Act & Assert
+        // A lógica (servicesFromDb.Count != providerUpdate.ServicesIds.Count) será 1 != 2, o que deve lançar a exceção
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _providerService.UpdateServicesAsync(dto, providerId)
+        );
+
+        Assert.Equal("Um ou mais IDs de provedor enviados são inválidos.", exception.Message);
+        _mockUnitOfWork.Verify(uof => uof.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }
