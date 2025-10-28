@@ -108,7 +108,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
