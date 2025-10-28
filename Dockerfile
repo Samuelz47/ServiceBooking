@@ -11,6 +11,8 @@ COPY ServiceBooking.Domain/*.csproj ServiceBooking.Domain/
 COPY ServiceBooking.Infrastructure/*.csproj ServiceBooking.Infrastructure/
 COPY ServiceBooking.CrossCutting/*.csproj ServiceBooking.CrossCutting/
 COPY ServiceBooking.Shared/*.csproj ServiceBooking.Shared/
+COPY ServiceBooking.Application.Tests/*.csproj ServiceBooking.Application.Tests/
+COPY ServiceBooking.API.Tests/*.csproj ServiceBooking.API.Tests/
 # (Nota: Os projetos de teste não são necessários para o deploy)
 
 # Restaura as dependências
