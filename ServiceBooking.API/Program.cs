@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ServiceBooking.API.Middleware;
 using ServiceBooking.CrossCutting.DependencyInjection;
@@ -79,6 +80,25 @@ builder.Services.AddRateLimiter(options =>
 });
 
 var app = builder.Build();
+
+// 1. Obter o DbContext a partir dos serviços configurados
+using (var scope = app.Services.CreateScope())              //Migrações automáticas
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ServiceBooking.Infrastructure.Context.AppDbContext>();
+
+    // 2. Tentar aplicar as migrações pendentes
+    try
+    {
+        // Verifica se a base de dados existe e aplica migrações
+        await dbContext.Database.MigrateAsync();
+        Console.WriteLine("Migrações aplicadas com sucesso."); // Log para vermos no Render
+    }
+    catch (Exception ex)
+    {
+        // Logar o erro se a migração falhar (importante para debugging no Render)
+        Console.WriteLine($"Erro ao aplicar migrações: {ex.Message}");
+    }
+}
 
 app.UseExceptionHandler();
 // Configure the HTTP request pipeline.
