@@ -102,10 +102,12 @@ using (var scope = app.Services.CreateScope())              //Migrações automáti
 
 app.UseExceptionHandler();
 // Configure the HTTP request pipeline.
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();                    
-    app.UseSwaggerUI();
 }
 
 
