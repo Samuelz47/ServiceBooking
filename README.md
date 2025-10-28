@@ -115,6 +115,14 @@ O projeto está dividido numa solução (`.sln`) que segue os princípios da Arq
     A API estará a correr (por defeito) em `http://localhost:5075`.
     Podes aceder à documentação interativa do Swagger em: `http://localhost:5075/swagger`.
 
+## 🚀 API Ao Vivo (Deploy)
+
+A API está disponível publicamente para demonstração através do Swagger UI:
+
+[https://servicebooking-bu82.onrender.com/swagger](https://servicebooking-bu82.onrender.com/swagger) 
+
+*(Nota: A instância gratuita pode demorar até 60 segundos a "acordar" na primeira visita após um período de inatividade.)* ```
+
 ## 📚 Documentação da API (Endpoints Principais)
 
 Todos os endpoints que requerem autenticação esperam um `Bearer Token` no *header* `Authorization`.
